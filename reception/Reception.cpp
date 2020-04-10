@@ -11,8 +11,10 @@
 
 #include "Reception.hpp"
 #include "KitchenSpawner/IKitchenLink.hpp"
-#include "deps/utils/StringUtils.hpp"
 #include "logfile.hpp"
+#include "KitchenSpawner/network/KitchenNetworkSpawner.hpp"
+#include "deps/utils/StringUtils.hpp"
+#include "deps/Socket.hpp"
 
 const std::unordered_map<std::string_view, Reception::commandPtr_t> Reception::__commands = {
     { "exit", &Reception::_cmdExit },
@@ -125,4 +127,19 @@ void Reception::_cmdStatus(const argv_t &args)
 
 void Reception::_cmdConnect(const argv_t &args)
 {
+    if (args.size() != 3)
+        std::cout << "KO: invalid format: connect <addressIPv4> <port>" << std::endl;
+
+    try {
+        std::shared_ptr<Socket> interface = std::make_shared<Socket>();
+        interface->connect(htons(std::stoi(args[2])), args[1].c_str());
+        std::string buffer;
+        if (!interface->good() || !interface->getline(buffer)) {
+            std::cout << "KO: connection failed" << std::endl;
+            return;
+        }
+        _kitchenManager->bindSpawner(std::make_shared<KitchenNetworkSpawner>(interface));
+    } catch (...) {
+        std::cout << "KO: invalid format: connect <addressIPv4> <port>" << std::endl;
+    }
 }

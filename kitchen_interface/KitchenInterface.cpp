@@ -17,10 +17,10 @@
 // SPAWN      -> OK <address> <port> <pid> / KO
 
 const std::unordered_map<std::string_view, KitchenInterface::commandInfo_t> KitchenInterface::__commands = {
-    { "PING", { &KitchenInterface::_cmdPing, 1 } },
-    { "STOP", { &KitchenInterface::_cmdStop, 1 } },
-    { "STOP", { &KitchenInterface::_cmdStopAll, 0 } },
-    { "SPAWN", { &KitchenInterface::_cmdSpawn, 0 } }
+    { "PING", { &KitchenInterface::_cmdPing, 2 } },
+    { "STOP", { &KitchenInterface::_cmdStop, 2 } },
+    { "STOP", { &KitchenInterface::_cmdStopAll, 1 } },
+    { "SPAWN", { &KitchenInterface::_cmdSpawn, 1 } }
 };
 
 KitchenInterface::Exception::Exception(const std::string &msg)
@@ -38,15 +38,16 @@ KitchenInterface::KitchenInterface(const std::string_view &logFile)
     if (!_controlSock.good() || !_setSighandler() || !_createFifo())
         throw KitchenInterface::Exception("failed initialize kitchen interface");
 
-    std::string hostAddr = _localIPv4 + ":" + std::to_string(ntohs(_controlSock.info().sin_port));
+    std::string hostAddr = _localIPv4 + ' ' + std::to_string(ntohs(_controlSock.info().sin_port));
     std::cout << hostAddr << std::endl;
     _logStream.log("Kitchen interface opened on " + hostAddr);
 }
 
 KitchenInterface::~KitchenInterface()
 {
-    for (const auto &it : _kitchens)
-        it.join();
+    int status = 0;
+
+    while (wait(&status) > 0);
     _logStream.log("Kitchen interface closed\n");
 }
 
@@ -56,6 +57,8 @@ void KitchenInterface::start()
     if (!_clientSock.good())
         throw KitchenInterface::Exception("failed to accept incoming connection");
 
+    _clientSock.write("OK\n", 3);
+    _logStream.log("Reception connected");
     _running = true;
     std::string buffer;
     argv_t args;
@@ -63,6 +66,8 @@ void KitchenInterface::start()
         StringUtils::strtab(buffer, args);
         _validateCmd(args);
     }
+    if (_running)
+        _logStream.log("Reception disconnected");
 }
 
 bool KitchenInterface::_createFifo()
@@ -81,7 +86,7 @@ bool KitchenInterface::_setSighandler()
 
 void KitchenInterface::_validateCmd(argv_t &args) 
 {
-    std::string responseMsg;
+    std::string responseMsg = "command not found";
     bool status = false;
 
     for (const auto &it : __commands) {
@@ -104,9 +109,13 @@ bool KitchenInterface::_cmdPing(const argv_t &args, std::string &responseMsg)
         responseMsg = "invalid <pid> format";
         return (false);
     }
-    for (const auto &it : _kitchens) {
-        if (it.getPid() == pid)
-            return (it.isAlive());
+    for (auto it = _kitchens.begin(); it != _kitchens.end(); ++it) {
+        if (it->getPid() == pid) {
+            if (it->isAlive())
+                return (true);
+            _kitchens.erase(it);
+            return (false);
+        }
     }
     responseMsg = "<pid> not found";
     return (false);
@@ -122,9 +131,10 @@ bool KitchenInterface::_cmdStop(const argv_t &args, std::string &responseMsg)
         responseMsg = "invalid <pid> format";
         return (false);
     }
-    for (const auto &it : _kitchens) {
-        if (it.getPid() == pid) {
-            it.join();
+    for (auto it = _kitchens.begin(); it != _kitchens.end(); ++it) {
+        if (it->getPid() == pid) {
+            it->join();
+            _kitchens.erase(it);
             return (true);
         }
     }
@@ -152,5 +162,6 @@ bool KitchenInterface::_cmdSpawn(const argv_t &args, std::string &responseMsg)
     in_port_t bindedPort = 0;
     _fifo.receive((char *)&bindedPort, sizeof(bindedPort));
     responseMsg = _localIPv4 + " " + std::to_string(ntohs(bindedPort)) + " " + std::to_string(pid);
+    _kitchens.emplace_back(std::move(kitchen));
     return (true);
 }

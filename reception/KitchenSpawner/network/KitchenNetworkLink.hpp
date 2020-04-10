@@ -16,7 +16,7 @@
 class KitchenNetworkLink : public AKitchenLink
 {
 public:
-    KitchenNetworkLink(const std::string &address, in_port_t port, pid_t pid);
+    KitchenNetworkLink(std::shared_ptr<Socket> interface, const std::string &address, in_port_t port, pid_t pid);
     ~KitchenNetworkLink() override final = default;
 
     void waitstop() override final;
@@ -26,7 +26,7 @@ public:
     Network &getNetwork();
 
 protected:
-    pid_t   _id;
+    pid_t _id;
     Network _network;
-    Socket  _interface;
+    std::shared_ptr<Socket> _interface;
 };

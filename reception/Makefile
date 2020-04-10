@@ -39,6 +39,7 @@ fclean: clean
 
 re: fclean all
 
-tests_run: all
+tests_run:
+	make -C tests
 
 .PHONY: all clean fclean re tests_run

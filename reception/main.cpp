@@ -20,10 +20,6 @@ static void help(const char *binName)
 
 int main(int argc, char const *argv[])
 {
-    unsigned long timeMultiplier = 0;
-    unsigned long cooksPerKitchen = 0;
-    unsigned long restoreDelay = 0;
-
     if (argc != 4) {
         if (argc == 2 && !std::strcmp(argv[1], "-h")) {
             help(argv[0]);
@@ -34,9 +30,10 @@ int main(int argc, char const *argv[])
     }
     updateKitchenBinLocation();
     try {
-        timeMultiplier = std::stoul(std::string(argv[1]));
-        cooksPerKitchen = std::stoul(std::string(argv[2]));
-        restoreDelay = std::stoul(std::string(argv[3]));
+        unsigned timeMultiplier = std::stoul(std::string(argv[1]));
+        unsigned cooksPerKitchen = std::stoul(std::string(argv[2]));
+        unsigned restoreDelay = std::stoul(std::string(argv[3]));
+
         Reception reception(timeMultiplier, cooksPerKitchen, restoreDelay);
         reception.start();
     } catch (const std::exception &err) {
