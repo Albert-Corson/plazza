@@ -86,7 +86,7 @@ bool KitchenInterface::_setSighandler()
 
 void KitchenInterface::_validateCmd(argv_t &args) 
 {
-    std::string responseMsg = "command not found";
+    std::string responseMsg;
     bool status = false;
 
     for (const auto &it : __commands) {
@@ -95,7 +95,7 @@ void KitchenInterface::_validateCmd(argv_t &args)
             break;
         }
     }
-    responseMsg = (status ? "OK " : "KO ") + responseMsg + "\n";
+    responseMsg = (status ? "OK" : "KO") + responseMsg + "\n";
     _clientSock.write(responseMsg.c_str(), responseMsg.size());
 }
 
@@ -106,7 +106,6 @@ bool KitchenInterface::_cmdPing(const argv_t &args, std::string &responseMsg)
     try {
         pid = std::stoi(args[1]);
     } catch (...) {
-        responseMsg = "invalid <pid> format";
         return (false);
     }
     for (auto it = _kitchens.begin(); it != _kitchens.end(); ++it) {
@@ -117,7 +116,6 @@ bool KitchenInterface::_cmdPing(const argv_t &args, std::string &responseMsg)
             return (false);
         }
     }
-    responseMsg = "<pid> not found";
     return (false);
 }
 
@@ -128,7 +126,6 @@ bool KitchenInterface::_cmdStop(const argv_t &args, std::string &responseMsg)
     try {
         pid = std::stoi(args[1]);
     } catch (...) {
-        responseMsg = "invalid <pid> format";
         return (false);
     }
     for (auto it = _kitchens.begin(); it != _kitchens.end(); ++it) {
@@ -138,7 +135,6 @@ bool KitchenInterface::_cmdStop(const argv_t &args, std::string &responseMsg)
             return (true);
         }
     }
-    responseMsg = "<pid> not found";
     return (false);
 }
 
@@ -156,12 +152,11 @@ bool KitchenInterface::_cmdSpawn(const argv_t &args, std::string &responseMsg)
 
     pid_t pid = kitchen.exec(locateKitchenBin().c_str(), "--network", __fifoName.data(), _logFilePath.data());
     if (pid < 0) {
-        responseMsg = "fork failed";
         return (false);
     }
     in_port_t bindedPort = 0;
     _fifo.receive((char *)&bindedPort, sizeof(bindedPort));
-    responseMsg = _localIPv4 + " " + std::to_string(ntohs(bindedPort)) + " " + std::to_string(pid);
+    responseMsg = ' ' + _localIPv4 + ' ' + std::to_string(ntohs(bindedPort)) + " " + std::to_string(pid);
     _kitchens.emplace_back(std::move(kitchen));
     return (true);
 }
