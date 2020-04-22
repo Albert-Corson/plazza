@@ -52,7 +52,7 @@ jobs:
       - name: Set up remote (epitech)
         shell: bash
         run: |
-          git remote add epitech git@git.epitech.eu:/albert.corson@epitech.eu/PSU_nmobjdump_2019
+          git remote add epitech git@git.epitech.eu:/adrien.lucbert@epitech.eu/CCP_plazza_2019
 
       - name : Push to repository (epitech)
         shell: bash
