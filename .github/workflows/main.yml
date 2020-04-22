@@ -1,0 +1,60 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Build Checker
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: BuildStandard
+        run: make
+
+  tests:
+    name: Test Runner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: BuildTest
+        shell: bash
+        run: make tests_run
+
+  deploy:
+    name: Deploy
+    needs: [build, tests]
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: Set up ssh key
+        uses: webfactory/ssh-agent@v0.2.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.SSH_KEY_DEPLOY }}
+
+      - name: Clone Repository
+        uses: actions/checkout@v2
+        with:
+          ref: 'master'
+          fetch-depth: '0' # get all history of master
+
+      #Push on an epitech repository
+      - name: Add host git.epitech.eu
+        shell: bash
+        run: ssh-keyscan git.epitech.eu >> ~/.ssh/known_hosts
+
+      - name: Set up remote (epitech)
+        shell: bash
+        run: |
+          git remote add epitech git@git.epitech.eu:/albert.corson@epitech.eu/PSU_nmobjdump_2019
+
+      - name : Push to repository (epitech)
+        shell: bash
+        run: |
+          git push epitech master
