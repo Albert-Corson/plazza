@@ -13,7 +13,7 @@ OBJ	=	$(SRC:.cpp=.o)
 
 CXXFLAGS	=	$(COMMON_CXXFLAGS)
 
-NAME	=	../kitchen.bin
+NAME	=	../bin/kitchen
 
 $(NAME): $(OBJ)
 	$(CC) -o $(NAME) $(OBJ)

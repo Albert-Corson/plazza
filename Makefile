@@ -24,10 +24,10 @@ KITCHEN		=	$(MAKE) -C ./kitchen
 all:	reception kitchen
 
 reception:
-	$(RECEPTION)
+	$(RECEPTION) COMMON_CXXFLAGS="$(COMMON_CXXFLAGS)"
 
 kitchen:
-	$(KITCHEN)
+	$(KITCHEN) COMMON_CXXFLAGS="$(COMMON_CXXFLAGS)"
 
 clean:
 	$(RECEPTION) clean
