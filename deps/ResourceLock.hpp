@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2020
 ** CCP_plazza_2019
 ** File description:
-** SharedResource
+** ResourceLock
 */
 
 #pragma once
@@ -12,24 +12,24 @@
 #include <functional>
 
 template <typename T>
-class SharedResource : private std::recursive_mutex {
+class ResourceLock : private std::recursive_mutex {
     public:
         class Exception : public ::Exception {
             public:
                 Exception(const std::string &msg)
-                    : ::Exception("SharedResource<T>::Exception: " + msg)
+                    : ::Exception("ResourceLock<T>::Exception: " + msg)
                 {
                 }
                 ~Exception() override = default;
         };
 
-        SharedResource(T data)
+        ResourceLock(T data)
             : _resource(std::move(data))
         {
         }
-        ~SharedResource() = default;
-        SharedResource(const SharedResource<T> &other) = delete;
-        SharedResource<T> &operator=(const SharedResource<T> &other) = delete;
+        ~ResourceLock() = default;
+        ResourceLock(const ResourceLock<T> &other) = delete;
+        ResourceLock<T> &operator=(const ResourceLock<T> &other) = delete;
 
         T *operator->()
         {
@@ -74,9 +74,9 @@ class SharedResource : private std::recursive_mutex {
             unlock();
         }
 
-        std::lock_guard<SharedResource> lock_guard()
+        std::lock_guard<ResourceLock> lock_guard()
         {
-            return (std::lock_guard<SharedResource>(*this));
+            return (std::lock_guard<ResourceLock>(*this));
         }
 
     private:
