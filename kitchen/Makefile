@@ -11,12 +11,14 @@ SRC	=	main.cpp
 
 OBJ	=	$(SRC:.cpp=.o)
 
-CXXFLAGS	=	$(COMMON_CXXFLAGS)
+CXXFLAGS	=	$(COMMON_CXXFLAGS)	\
+				-I./				\
+				-I../
 
 NAME	=	../bin/kitchen
 
 $(NAME): $(OBJ)
-	$(CC) -o $(NAME) $(OBJ)
+	$(CC) -o $(NAME) $(OBJ) -pthread
 
 all: $(NAME)
 

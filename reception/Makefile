@@ -11,7 +11,9 @@ SRC	=	main.cpp
 
 OBJ	=	$(SRC:.cpp=.o)
 
-CXXFLAGS	=	$(COMMON_CXXFLAGS)
+CXXFLAGS	=	$(COMMON_CXXFLAGS)	\
+				-I./				\
+				-I../
 
 NAME	=	../plazza
 
