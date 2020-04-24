@@ -7,7 +7,11 @@
 
 CC	=	g++
 
-SRC	=	main.cpp
+SRC	=	main.cpp					\
+		Kitchen.cpp					\
+		components/Cook.cpp			\
+		components/Ingredient.cpp	\
+		components/Pizza.cpp
 
 OBJ	=	$(SRC:.cpp=.o)
 
