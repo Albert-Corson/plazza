@@ -18,7 +18,7 @@ CXXFLAGS	=	$(COMMON_CXXFLAGS)	\
 NAME	=	../plazza
 
 $(NAME): $(OBJ)
-	$(CC) -o $(NAME) $(OBJ)
+	$(CC) -o $(NAME) $(OBJ) -pthread
 
 all: $(NAME)
 

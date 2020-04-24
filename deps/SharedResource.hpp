@@ -31,35 +31,52 @@ class SharedResource : private std::recursive_mutex {
         SharedResource(const SharedResource<T> &other) = delete;
         SharedResource<T> &operator=(const SharedResource<T> &other) = delete;
 
+        T *operator->()
+        {
+            return (&_resource);
+        }
+
+        T &operator*()
+        {
+            return (_resource);
+        }
+
         using std::recursive_mutex::unlock;
 
         const T &read()
         {
             return (_resource);
         }
+
         T &lock()
         {
             std::recursive_mutex::lock();
             return (_resource);
         }
+
         T *try_lock()
         {
-            if (std::recursive_mutex::try_lock())
-                return (&_resource);
-            return (nullptr);
+            if (!std::recursive_mutex::try_lock())
+                return (nullptr);
+            return (&_resource);
         }
+
         void apply(std::function<void (T &)> function)
         {
-            std::recursive_mutex::lock();
+            auto lg = lock_guard();
+
             function(_resource);
+        }
+
+        void try_apply(std::function<void (T &, bool)> function)
+        {
+            function(_resource, std::recursive_mutex::try_lock());
             unlock();
         }
-        void try_apply(std::function<void (T &)> function)
+
+        std::lock_guard<SharedResource> lock_guard()
         {
-            if (!std::recursive_mutex::try_lock())
-                throw Exception("try_apply: resource is in use");
-            function(_resource);
-            unlock();
+            return (std::lock_guard<SharedResource>(*this));
         }
 
     private:
