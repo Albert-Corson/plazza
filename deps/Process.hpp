@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2020
 ** CCP_plazza_2019
 ** File description:
-** Fork
+** Process
 */
 
 #pragma once
@@ -11,31 +11,34 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-class Fork {
+class Process {
     public:
         class Exception : public ::Exception {
             public:
                 Exception(const std::string &msg)
-                    : ::Exception("Fork::Exception: " + msg)
+                    : ::Exception("Process::Exception: " + msg)
                 {
                 }
                 ~Exception() override = default;
         };
 
-        Fork()
-        {
-            _pid = fork();
-        }
-        ~Fork() = default;
+        Process() = default;
+        ~Process() = default;
 
+        pid_t fork()
+        {
+            _pid = ::fork();
+        }
         int join() const
         {
             int status = 0;
 
-            if (_pid == 0)
-                throw Fork::Exception("A child process cannot wait for it's parent");
+            if (_pid < 0)
+                throw Process::Exception("No child process started");
+            else if (_pid == 0)
+                throw Process::Exception("A child process cannot wait for it's parent");
             if (wait(&status) != _pid)
-                throw Fork::Exception("Couldn't wait for the child process to finish");
+                throw Process::Exception("Couldn't wait for the child process to finish");
             return (status);
         }
         pid_t getPid() const
@@ -44,5 +47,5 @@ class Fork {
         }
 
     private:
-        pid_t _pid;
+        pid_t _pid = -1;
 };

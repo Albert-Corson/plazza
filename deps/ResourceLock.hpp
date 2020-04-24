@@ -23,7 +23,11 @@ class ResourceLock : private std::recursive_mutex {
                 ~Exception() override = default;
         };
 
-        ResourceLock(T data)
+        ResourceLock(T &&data)
+            : _resource(data)
+        {
+        }
+        ResourceLock(T &data)
             : _resource(std::move(data))
         {
         }
