@@ -7,16 +7,19 @@
 
 CC	=	g++
 
-SRC	=	main.cpp
+SRC	=	main.cpp			\
+		main_reception.cpp	\
+		load_args.cpp		\
+		parse_pizza.cpp		\
 
-OBJ	=	$(SRC:.cpp=.o)
+OBJ	=	$(addprefix src/, $(SRC:.cpp=.o))
 
-CXXFLAGS	=	$(COMMON_CXXFLAGS)
+CXXFLAGS	=	$(COMMON_CXXFLAGS) -Iinclude
 
 NAME	=	../plazza
 
 $(NAME): $(OBJ)
-	$(CC) -o $(NAME) $(OBJ)
+	$(CC) -o $(NAME) $(OBJ) $(CXXFLAGS)
 
 all: $(NAME)
 
