@@ -79,18 +79,17 @@ class Thread {
         Thread(const Thread &other) = delete;
         Thread &operator=(const Thread &other) = delete;
 
-        template <typename Function, typename ...Args>
-        Thread(Function &&task, Args &&...args)
-            : _joinable(true)
-            , _running(true)
+        Thread()
+            : _id(0)
+            , _joinable(false)
+            , _running(false)
         {
-            auto _task = new FakeLambda<Function, Args...>(_running, std::forward<Function>(task), std::forward<Args>(args)...);
-            using lambdaType_t = std::remove_reference_t<decltype(*_task)>;
+        }
 
-            int errc = pthread_create(&_id, NULL, &_callFakeLambda<lambdaType_t>, _task);
-
-            if (errc != 0)
-                throw Exception(strerror(errc));
+        template <typename Function, typename ...Args>
+        explicit Thread(Function &&task, Args &&...args)
+        {
+            run(std::forward<Function>(task), std::forward<Args>(args)...);
         }
 
         Thread(Thread &&other)
@@ -110,6 +109,20 @@ class Thread {
         {
             if (_joinable)
                 throw Exception("Thread left unjoined / attached");
+        }
+
+        template <typename Function, typename ...Args>
+        void run(Function &&task, Args &&...args)
+        {
+            auto _task = new FakeLambda<Function, Args...>(_running, std::forward<Function>(task), std::forward<Args>(args)...);
+            using lambdaType_t = std::remove_reference_t<decltype(*_task)>;
+
+            _joinable = true;
+            _running = true;
+            int errc = pthread_create(&_id, NULL, &_callFakeLambda<lambdaType_t>, _task);
+
+            if (errc != 0)
+                throw Exception(strerror(errc));
         }
 
         pthread_t get_id()

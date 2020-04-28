@@ -70,7 +70,7 @@ class IPCProtocol
     }
 
     template<typename... Args>
-    void send(const std::string_view &command, Args &&... args)
+    void send(const std::string_view &command, Args &&... args) const
     {
         std::ostringstream stream;
 

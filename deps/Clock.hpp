@@ -9,6 +9,8 @@
 
 #include <chrono>
 
+typedef long millisec_t;
+
 class Clock {
     public:
         Clock()
@@ -26,7 +28,7 @@ class Clock {
             _start = std::chrono::steady_clock::now();
         }
 
-        long getElapsedMillisecond()
+        millisec_t getElapsedMillisecond() const
         {
             const auto &end = std::chrono::steady_clock::now();
             return (std::chrono::duration_cast<std::chrono::milliseconds>(end - _start).count());
