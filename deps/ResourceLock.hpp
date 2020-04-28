@@ -7,35 +7,43 @@
 
 #pragma once
 
-#include "Exception.hpp"
 #include <mutex>
 #include <functional>
+#include <condition_variable>
+
+#include "Exception.hpp"
 
 template <typename T>
 class ResourceLock : private std::recursive_mutex {
     public:
-        class Exception : public ::Exception {
-            public:
-                Exception(const std::string &msg)
-                    : ::Exception("ResourceLock<T>::Exception: " + msg)
-                {
-                }
-                ~Exception() override = default;
-        };
-
-        ResourceLock(T &&data)
-            : _resource(data)
-        {
-        }
-        ResourceLock(T &data)
+        ResourceLock(const T &data)
             : _resource(std::move(data))
         {
         }
+        ResourceLock()
+            : ResourceLock(T())
+        {
+        }
         ~ResourceLock() = default;
-        ResourceLock(const ResourceLock<T> &other) = delete;
+        ResourceLock(ResourceLock<T> &&other)
+        {
+            *this = std::move(other);
+        }
+        ResourceLock<T> &operator=(ResourceLock<T> &&other)
+        {
+            _resource = std::move(other._resource);
+            return (*this);
+        }
+
+        ResourceLock(ResourceLock<T> &other) = delete;
         ResourceLock<T> &operator=(const ResourceLock<T> &other) = delete;
 
         T *operator->()
+        {
+            return (&_resource);
+        }
+
+        const T *operator->() const
         {
             return (&_resource);
         }
@@ -45,9 +53,14 @@ class ResourceLock : private std::recursive_mutex {
             return (_resource);
         }
 
+        const T &operator*() const
+        {
+            return (_resource);
+        }
+
         using std::recursive_mutex::unlock;
 
-        const T &read()
+        const T &read() const
         {
             return (_resource);
         }
@@ -83,6 +96,35 @@ class ResourceLock : private std::recursive_mutex {
             return (std::lock_guard<ResourceLock>(*this));
         }
 
+        void wait(std::function<bool (const T &)> predicate)
+        {
+            std::unique_lock<ResourceLock<T>> _unqLock(*this);
+
+            _condVar.wait(_unqLock, [&]() {
+                return predicate(_resource);
+            });
+            _unqLock.unlock();
+        }
+
+        void wait()
+        {
+            std::unique_lock<ResourceLock<T>> unqLock(*this);
+
+            _condVar.wait(unqLock);
+            unqLock.unlock();
+        }
+
+        void notify_one()
+        {
+            _condVar.notify_one();
+        }
+
+        void notify_all()
+        {
+            _condVar.notify_all();
+        }
+
     private:
         T _resource;
+        std::condition_variable_any _condVar;
 };

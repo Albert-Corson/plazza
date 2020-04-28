@@ -9,6 +9,7 @@ CC	=	g++
 
 SRC	=	main.cpp					\
 		Kitchen.cpp					\
+		components/Exception.cpp	\
 		components/Cook.cpp			\
 		components/Ingredient.cpp	\
 		components/Pizza.cpp

@@ -10,10 +10,10 @@ jobs:
   build:
     name: Build Checker
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: BuildStandard
         run: make
 

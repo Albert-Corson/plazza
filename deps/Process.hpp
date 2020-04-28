@@ -19,6 +19,10 @@ class Process {
                     : ::Exception("Process::Exception: " + msg)
                 {
                 }
+                Exception(std::string &&msg)
+                    : ::Exception(std::move("Process::Exception: " + msg))
+                {
+                }
                 ~Exception() override = default;
         };
 

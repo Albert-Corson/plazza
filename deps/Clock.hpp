@@ -15,6 +15,10 @@ class Clock {
             : _start(std::chrono::steady_clock::now())
         {
         }
+        Clock(const Clock &other)
+            : _start(other._start)
+        {
+        }
         ~Clock() = default;
 
         void reset()

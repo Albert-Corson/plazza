@@ -16,6 +16,10 @@ class Exception : public std::exception {
             : _msg(msg)
         {
         }
+        Exception(std::string &&msg)
+            : _msg(std::move(msg))
+        {
+        }
         virtual ~Exception() = default;
 
         virtual const char *what() const noexcept override
