@@ -29,9 +29,11 @@ class IOStream : public IIPC
         std::cin.read(buffer, size);
     }
     // read next line from std::cin
-    void getline(char *buffer, std::streamsize size) const override final
+    bool getline(std::string &buffer) const override final
     {
-        std::cin.getline(buffer, size);
+        if (!std::getline(std::cin, buffer))
+            return (false);
+        return (true);
     }
     // write message to std::cout
     void send(const char *buffer, std::streamsize size) const override final

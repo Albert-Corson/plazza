@@ -5,12 +5,9 @@
 ** main
 */
 
-#include <iostream>
-#include <fstream>
-#include <cerrno>
-#include <cstring>
 #include "deps/IPC/NamedPipe.hpp"
 #include "deps/IPC/IPCProtocol.hpp"
+#include "Kitchen.hpp"
 
 static void help(const char *binName)
 {
@@ -20,11 +17,17 @@ static void help(const char *binName)
 
 int main(int argc, char const *argv[])
 {
-    IPCProtocol io;
     std::ofstream log;
     bool running = true;
     NamedPipe pipe;
+    IPCProtocol io;
 
+    for (int i = 0; i < argc; ++i) {
+        if (!strcasecmp("-h", argv[i]) || !strcasecmp("--help", argv[i])) {
+            help(argv[0]);
+            return (0);
+        }
+    }
     log.copyfmt(std::cout);
     if (argc >= 2) {
         if (!pipe.open(argv[1])) {
@@ -40,12 +43,7 @@ int main(int argc, char const *argv[])
         help(argv[0]);
         return (84);
     }
-    while (running) {
-        const auto &command = io.receive();
-        for (auto it : command)
-            std::cout << it << std::endl;
-        if (command[0] == "STOP")
-            running = false;
-    }
+    Kitchen kitchen(io);
+    kitchen.run();
     return (0);
 }

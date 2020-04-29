@@ -8,112 +8,51 @@
 #pragma once
 
 #include <string_view>
-#include <vector>
 #include <unordered_map>
-#include <memory>
-#include <list>
 
-#include "deps/ResourceLock.hpp"
+#include "deps/IPC/IPCProtocol.hpp"
 #include "deps/Exception.hpp"
 #include "deps/Clock.hpp"
-#include "deps/Thread.hpp"
-
-typedef long millisec_t;
+#include "Pizza.hpp"
+#include "Fridge.hpp"
+// #include "Cook.hpp"
 
 class Kitchen {
-    public:
-        class Exception;
+public:
+    class Exception;
 
-        Kitchen(const double &cookingMutliplier, const size_t &cooks, const millisec_t &restockRate);
-        ~Kitchen();
+    Kitchen(const IPCProtocol &IPC);
 
-        void addPizzaToMenu(const std::string_view &pizza, const millisec_t &cookTime, const std::unordered_map<std::string_view, size_t> &ingredients);
-        size_t getAvailQueueSize() const noexcept;
-        void takeOrder(const std::string_view &pizzaName);
+    void run();
+    void stop();
 
-    private:
-        class Ingredient;
-        class Pizza;
-        class Cook;
+private:
+    using argv_t = std::vector<std::string>;
+    using commandPtr_t = bool (Kitchen::*) (const argv_t &);
 
-        const double _cookingMutliplier;
-        const millisec_t _restockRate;
-        const size_t _maxOrderQueue;
+    struct commandInfo_t {
+        commandPtr_t cmdPtr;
+        size_t minArgc;
+        size_t maxArgc;
+        std::string_view usage;
+    };
 
-        std::shared_ptr<std::vector<ResourceLock<Ingredient>>> _fridge;
-        std::shared_ptr<ResourceLock<std::list<Pizza>>> _orderQueue;
-        std::vector<Pizza> _menu;
-        std::vector<Cook> _cooks;
-};
+    static const std::unordered_map<std::string_view, commandInfo_t> __commands;
 
-class Kitchen::Exception : public ::Exception {
-    public:
-        Exception(const std::string &msg);
-        Exception(std::string &&msg);
-        ~Exception() override = default;
-};
+    const IPCProtocol &_IPC;
+    bool _running;
+    float _cookTimeMultiplier;
+    size_t _maxCooks;
+    std::vector<Pizza> _recipe;
+    Fridge _fridge;
+    // std::vector<Cook> _cooks;
 
-class Kitchen::Ingredient {
-    public:
-
-        Ingredient(const std::string_view &ingredient, const millisec_t &restockRate, const size_t &amount = 5);
-        Ingredient() = default;
-        Ingredient(const Ingredient &other);
-        Ingredient &operator=(const Ingredient &other);
-
-        const std::string_view &getName() const noexcept;
-        const size_t &getAmount() const noexcept;
-        void setAmount(size_t amount) noexcept;
-        void add() noexcept;
-        void remove() noexcept;
-        bool available(const size_t &amount) noexcept;
-        size_t take(const size_t &needed) noexcept;
-        void restock() noexcept;
-        void waitForRestock() const noexcept;
-
-    private:
-        std::string_view _name;
-        millisec_t _restockRate;
-        size_t _amount;
-        std::unique_ptr<Clock> _timer;
-        millisec_t _elapsed;
-
-};
-
-class Kitchen::Pizza {
-    public:
-
-        Pizza(const std::string_view &pizza, const millisec_t &cookTime);
-        Pizza(const Pizza &other);
-
-        const std::string_view &getName() const noexcept;
-        const std::vector<Ingredient> &getIngredients() const noexcept;
-        void addIngredient(const std::string_view &ingredientName, const size_t &amount);
-        void cook(const double &timeMultiplier) const noexcept;
-
-    private:
-        std::string_view _name;
-        const millisec_t _cookingTime;
-        std::vector<Ingredient> _ingredients;
-};
-
-class Kitchen::Cook {
-    public:
-        Cook(const double &cookingMutliplier, std::shared_ptr<ResourceLock<std::list<Pizza>>> &orderQueue, std::shared_ptr<std::vector<ResourceLock<Ingredient>>> &fridge);
-        Cook(Cook &&other);
-        ~Cook() = default;
-
-        void layOff() noexcept;
-        void getWorking();
-
-    private:
-        const double _cookingMutliplier;
-        std::weak_ptr<ResourceLock<std::list<Pizza>>> _orderQueue;
-        std::weak_ptr<std::vector<ResourceLock<Ingredient>>> _fridge;
-        std::unique_ptr<Thread> _thread;
-        bool _isEmployed;
-        std::unique_ptr<Pizza> _currentOrder;
-
-        void _getWorking();
-        void _makePizza();
+    commandPtr_t _validateCommand(const argv_t &argv);
+    void _errorResponse(const std::string_view &message, const argv_t &failedCmd = {});
+    void _successResponse();
+    bool _help(const argv_t &argv = {});
+    bool _start(const argv_t &argv);
+    bool _newRecipe(const argv_t &argv);
+    bool _order(const argv_t &argv);
+    bool _stop(const argv_t &argv = {});
 };

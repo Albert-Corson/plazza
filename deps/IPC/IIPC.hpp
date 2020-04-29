@@ -18,7 +18,7 @@ class IIPC
     // Receive message from communication input
     virtual void receive(char *buffer, std::streamsize size) const = 0;
     // Get next line from communication input
-    virtual void getline(char *buffer, std::streamsize size) const = 0;
+    virtual bool getline(std::string &buffer) const = 0;
     // Send message to communication output
     virtual void send(const char *buffer, std::streamsize size) const = 0;
     // Tell if communication is established successfully

@@ -52,12 +52,14 @@ class NamedPipe : public IIPC
         in.read(buffer, size);
     }
     // read next line from fifo
-    void getline(char *buffer, std::streamsize size) const override final
+    bool getline(std::string &buffer) const override final
     {
         if (_path == nullptr)
-            return;
+            return (false);
         std::ifstream in(_path->c_str(), std::ios::binary);
-        in.getline(buffer, size);
+        if (!std::getline(in, buffer))
+            return (false);
+        return (true);
     }
     // write message to fifo
     void send(const char *buffer, std::streamsize size) const override final

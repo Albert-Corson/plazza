@@ -10,24 +10,10 @@
 #include <string_view>
 #include <string>
 #include <memory>
-#include <unordered_map>
 #include <vector>
 #include <regex>
 #include "deps/IPC/NamedPipe.hpp"
 #include "deps/IPC/IOStream.hpp"
-
-using commandInfo = struct commandInfo {
-    std::size_t minArgc;
-    std::size_t maxArgc;
-    std::string usage;
-};
-
-const std::unordered_map<std::string_view, commandInfo> commandsList = {
-    { "INIT", { 4, 4, "INIT <multiplier> <cooks> <refill>: Initialize a kitchen." } },
-    { "LEARN", { 4, 0, "LEARN <name> <time> <ingredient>...: Learn a pizza recipe." } },
-    { "COOK", { 2, 2, "COOK <name>: Start cooking a pizza." } },
-    { "STOP", { 1, 1, "STOP: Close kitchen." } }
-};
 
 // Inter-Process Communication Protocol
 class IPCProtocol
@@ -48,25 +34,20 @@ class IPCProtocol
         return (this->good());
     }
 
-    const std::vector<std::string> &receive() const
+    bool receive(std::vector<std::string> &buffer) const
     {
-        static std::vector<std::string> args;
-        char buffer[4096];
         std::string strbuffer;
         std::regex splitter("(\"[^\"]+\"|[^\\s\"]+)");
 
-        args.clear();
-        _comm->getline(buffer, 4096);
-        strbuffer = std::move(buffer);
+        buffer.clear();
+        if (!_comm->getline(strbuffer))
+            return (false);
         auto it = std::sregex_iterator(strbuffer.begin(), strbuffer.end(), splitter);
         auto end = std::sregex_iterator();
         for (; it != end; ++it) {
-            args.push_back(it->str());
+            buffer.emplace_back(std::move(it->str()));
         }
-        if (!this->validateCommand(args)) {
-            args.clear();
-        }
-        return (args);
+        return (true);
     }
 
     template<typename... Args>
@@ -87,23 +68,4 @@ class IPCProtocol
 
   private:
     std::unique_ptr<IIPC> _comm{ nullptr };
-
-    bool validateCommand(const std::vector<std::string> &args) const
-    {
-        if (args.size() == 0) {
-            std::cerr << "Invalid empty command." << std::endl;
-            return (false);
-        }
-        auto command = commandsList.find(args[0]);
-        if (command == commandsList.end()) {
-            std::cerr << "Unknown command: '" << args[0] << "'." << std::endl;
-            return (false);
-        }
-        const commandInfo &info = command->second;
-        if (args.size() < info.minArgc || (info.maxArgc != 0 && args.size() > info.maxArgc)) {
-            std::cerr << "Invalid command syntax." << std::endl;
-            return (false);
-        }
-        return (true);
-    }
 };

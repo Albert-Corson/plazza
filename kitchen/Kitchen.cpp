@@ -7,59 +7,157 @@
 
 #include "Kitchen.hpp"
 
-Kitchen::Kitchen(const double &cookingMutliplier, const size_t &cooks, const millisec_t &restockRate)
-    : _cookingMutliplier(cookingMutliplier)
-    , _restockRate(restockRate)
-    , _maxOrderQueue(cooks)
-    , _fridge(std::make_shared<std::vector<ResourceLock<Ingredient>>>())
-    , _orderQueue(std::make_shared<ResourceLock<std::list<Pizza>>>())
+const std::unordered_map<std::string_view, Kitchen::commandInfo_t> Kitchen::__commands = {
+    { "HELP",
+        { &Kitchen::_help, 1, 0, ": show this on stderr only." }
+    },
+    { "START",
+        { &Kitchen::_start, 4, 4, "<multiplier> <cooks> <refill_rate_ms>: Initialize a kitchen." }
+    },
+    { "NEW_RECIPE",
+        { &Kitchen::_newRecipe, 4, 0, "<name> <cook_time_ms> [<ingredient> <amount>]...: Add a pizza recipe to the menu." }
+    },
+    { "ORDER",
+        { &Kitchen::_order, 2, 2, "<name>: Start cooking a pizza." }
+    },
+    { "STOP",
+        { &Kitchen::_stop, 1, 0, ": Close kitchen." }
+    }
+};
+
+Kitchen::Kitchen(const IPCProtocol &IPC)
+    : _IPC(IPC)
+    , _running(false)
+    , _cookTimeMultiplier(0)
+    , _maxCooks(0)
 {
-    for (size_t i = 0; i < cooks; ++i) {
-        _cooks.emplace_back(cookingMutliplier, _orderQueue, _fridge);
-        _cooks[i].getWorking();
+}
+
+void Kitchen::run()
+{
+    commandPtr_t cmd = nullptr;
+    std::vector<std::string> argv;
+
+    _running = true;
+    while (_running && _IPC.receive(argv)) {
+        cmd = _validateCommand(argv);
+        if (!cmd)
+            continue;
+        if (!(this->*cmd)(argv)) {
+            _errorResponse("Command failed", argv);
+        } else {
+            _successResponse();
+        }
     }
 }
 
-Kitchen::~Kitchen()
+void Kitchen::stop() 
 {
-    for (auto &it : _cooks)
-        it.layOff();
+    _stop();
 }
 
-void Kitchen::addPizzaToMenu(const std::string_view &pizza, const millisec_t &cookTime, const std::unordered_map<std::string_view, size_t> &ingredients)
+Kitchen::commandPtr_t Kitchen::_validateCommand(const argv_t &argv)
 {
-    for (const auto &it : _menu) {
-        if (it.getName() == pizza)
-            throw Kitchen::Exception("Pizza already exist: " + std::string(pizza.data()));
+    if (argv.size() == 0) {
+        _errorResponse("Invalid empty command, quitting", argv);
+        return (nullptr);
     }
-    Pizza entry(pizza, cookTime);
-    for (const auto &it : ingredients) {
-        const auto &check = std::find_if((*_fridge).cbegin(), (*_fridge).cend(), [&it](const auto &curr){
-            return (curr->getName() == it.first);
-        });
-        if (check == (*_fridge).cend())
-            (*_fridge).emplace_back(Ingredient(it.first, _restockRate));
-        entry.addIngredient(it.first, it.second);
+    const auto &command = Kitchen::__commands.find(argv[0]);
+    if (command == Kitchen::__commands.end()) {
+        _errorResponse("Unknown command", argv);
+        return (nullptr);
     }
-    _menu.emplace_back(std::move(entry));
+    const auto &info = command->second;
+    if (argv.size() < info.minArgc || (info.maxArgc != 0 && argv.size() > info.maxArgc)) {
+        _errorResponse("Invalid command syntax", argv);
+        return (nullptr);
+    }
+    return (info.cmdPtr);
 }
 
-size_t Kitchen::getAvailQueueSize() const noexcept
+void Kitchen::_successResponse() 
 {
-    return (_maxOrderQueue - (*_orderQueue).read().size());
+    _IPC.send("OK");
 }
 
-void Kitchen::takeOrder(const std::string_view &pizzaName)
+void Kitchen::_errorResponse(const std::string_view &message, const argv_t &failedCmd)
 {
-    const auto &pizza = std::find_if(_menu.cbegin(), _menu.cend(), [&pizzaName](const auto &it) {
-        return (it.getName() == pizzaName);
-    });
+    _IPC.send("KO:", message);
+    if (failedCmd.size() == 0)
+        return;
+    std::cerr << "\t";
+    for (const auto &it : failedCmd)
+        std::cerr << it << " ";
+    std::cerr << std::endl;
+}
 
-    if (pizza == _menu.cend())
-        throw Kitchen::Exception("Unknown pizza");
-    if (getAvailQueueSize() == 0)
-        throw Kitchen::Exception("Maximum amount of queued orders reached");
-    (*_orderQueue).apply([&pizza](auto &queue) {
-        queue.push_back(*pizza);
-    });
+bool Kitchen::_help(const argv_t &argv) 
+{
+    for (const auto &it : Kitchen::__commands)
+        std::cerr << "\t" << it.first << " " << it.second.usage << std::endl;
+    return (true);
+}
+
+bool Kitchen::_start(const argv_t &argv) 
+{
+    try {
+        size_t read = 0;
+
+        const float multiplier = std::stof(argv[1], &read);
+        if (read < argv[1].size())
+            return (false);
+
+        const size_t maxCooks = std::stoul(argv[2], &read);
+        if (read < argv[2].size())
+            return (false);
+
+        const millisec_t restockRate = std::stol(argv[3], &read);
+        if (read < argv[3].size())
+            return (false);
+
+        _cookTimeMultiplier = multiplier;
+        _maxCooks = maxCooks;
+        _fridge.run(restockRate);
+    } catch (...) {
+        return (false);
+    }
+    return (true);
+}
+
+bool Kitchen::_newRecipe(const argv_t &argv) 
+{
+    if ((argv.size() % 2) == 0)
+        return (false);
+    try {
+        size_t read = 0;
+        millisec_t cookTime = std::stol(argv[2], &read);
+        if (read < argv[2].size())
+            return (false);
+        Pizza pizza(argv[1], cookTime);
+
+        auto it = argv.begin() + 3;
+        auto end = argv.end();
+        for (; it != end; it += 2) {
+            pizza.addIngredientToRecipe(Ingredient(*it, std::stoul(*(it + 1))));
+            if (!_fridge.knownIngredient(*it))
+                _fridge.newIngredient(*it);
+        }
+
+        _recipe.emplace_back(std::move(pizza));
+    } catch (...) {
+        return (false);
+    }
+    return (true);
+}
+
+bool Kitchen::_order(const argv_t &argv) 
+{
+    throw "TO DO";
+    return (false);
+}
+
+bool Kitchen::_stop(const argv_t &argv) 
+{
+    _running = false;
+    return (true);
 }
