@@ -21,7 +21,7 @@ class Kitchen {
 public:
     class Exception;
 
-    Kitchen(const IPCProtocol &IPC);
+    Kitchen(std::unique_ptr<IPCProtocol> &IPC);
 
     void run();
     void stop();
@@ -39,7 +39,7 @@ private:
 
     static const std::unordered_map<std::string_view, commandInfo_t> __commands;
 
-    const IPCProtocol &_IPC;
+    std::unique_ptr<IPCProtocol> _IPC;
     bool _running;
     float _cookTimeMultiplier;
     size_t _maxCooks;

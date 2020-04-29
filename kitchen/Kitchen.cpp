@@ -25,8 +25,8 @@ const std::unordered_map<std::string_view, Kitchen::commandInfo_t> Kitchen::__co
     }
 };
 
-Kitchen::Kitchen(const IPCProtocol &IPC)
-    : _IPC(IPC)
+Kitchen::Kitchen(std::unique_ptr<IPCProtocol> &IPC)
+    : _IPC(std::move(IPC))
     , _running(false)
     , _cookTimeMultiplier(0)
     , _maxCooks(0)
@@ -39,7 +39,7 @@ void Kitchen::run()
     std::vector<std::string> argv;
 
     _running = true;
-    while (_running && _IPC.receive(argv)) {
+    while (_running && _IPC->receive(argv)) {
         cmd = _validateCommand(argv);
         if (!cmd)
             continue;
@@ -77,12 +77,12 @@ Kitchen::commandPtr_t Kitchen::_validateCommand(const argv_t &argv)
 
 void Kitchen::_successResponse() 
 {
-    _IPC.send("OK");
+    _IPC->send("OK");
 }
 
 void Kitchen::_errorResponse(const std::string_view &message, const argv_t &failedCmd)
 {
-    _IPC.send("KO:", message);
+    _IPC->send("KO:", message);
     if (failedCmd.size() == 0)
         return;
     std::cerr << "\t";

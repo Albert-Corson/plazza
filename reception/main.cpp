@@ -26,12 +26,12 @@ int main(int argc, char const *argv[])
     }
 
     IPCProtocol comm;
-    NamedPipe pipe("test.fifo");
+    std::shared_ptr<NamedPipe> pipe = std::make_shared<NamedPipe>("test.fifo");
 
-    pipe.make();
+    pipe->make();
     comm.connect(pipe);
     comm.send("INIT", argv[1], argv[2], argv[3]);
     comm.send("STOP");
-    pipe.remove();
+    pipe->remove();
     return (0);
 }

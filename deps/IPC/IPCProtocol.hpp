@@ -20,17 +20,16 @@ class IPCProtocol
 {
   public:
     IPCProtocol()
-        : _comm{ std::make_unique<IOStream>() }
+        : _comm{ std::make_shared<IOStream>() }
     {
     }
     ~IPCProtocol()
     {
-        _comm.release();
     }
 
-    int connect(IIPC &ipc)
+    int connect(const std::shared_ptr<IIPC> &ipc)
     {
-        _comm.reset(&ipc);
+        _comm = ipc;
         return (this->good());
     }
 
@@ -67,5 +66,5 @@ class IPCProtocol
     }
 
   private:
-    std::unique_ptr<IIPC> _comm{ nullptr };
+    std::shared_ptr<IIPC> _comm;
 };

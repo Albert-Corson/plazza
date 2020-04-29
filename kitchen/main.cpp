@@ -15,12 +15,24 @@ static void help(const char *binName)
               << "\tIf no arguments are given, stdin and stdout are used." << std::endl;
 }
 
+static std::unique_ptr<IPCProtocol> initIPC(int argc, char const *argv[])
+{
+    std::unique_ptr<IPCProtocol> ipc = std::make_unique<IPCProtocol>();
+    std::shared_ptr<NamedPipe> pipe = std::make_shared<NamedPipe>();
+
+    if (argc >= 2) {
+        if (!pipe->open(argv[1])) {
+            std::cerr << "Couldn't open named pipe: " << strerror(errno) << std::endl;
+            return (nullptr);
+        }
+        ipc->connect(pipe);
+    }
+    return (ipc);
+}
+
 int main(int argc, char const *argv[])
 {
     std::ofstream log;
-    bool running = true;
-    NamedPipe pipe;
-    IPCProtocol io;
 
     for (int i = 0; i < argc; ++i) {
         if (!strcasecmp("-h", argv[i]) || !strcasecmp("--help", argv[i])) {
@@ -28,22 +40,15 @@ int main(int argc, char const *argv[])
             return (0);
         }
     }
-    log.copyfmt(std::cout);
-    if (argc >= 2) {
-        if (!pipe.open(argv[1])) {
-            log << "Couldn't open named pipe: " << strerror(errno) << std::endl;
-            return (84);
-        }
-        io.connect(pipe);
-    }
+    std::unique_ptr<IPCProtocol> ipc = initIPC(argc, argv);
     if (argc == 3) {
         log.open(argv[2]);
     }
-    if (argc > 3 || !io.good() || !log.good()) {
+    if (argc > 3 || ipc == nullptr || !ipc->good() || !log.good()) {
         help(argv[0]);
         return (84);
     }
-    Kitchen kitchen(io);
+    Kitchen kitchen(ipc);
     kitchen.run();
     return (0);
 }
