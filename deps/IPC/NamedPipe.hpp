@@ -7,7 +7,8 @@
 
 #pragma once
 
-#include <string_view>
+#include <string>
+#include <memory>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>
@@ -24,13 +25,13 @@ class NamedPipe : public IIPC
     {
     }
     // prepare inter-process communication
-    NamedPipe(const std::string_view &path)
-        : _path{ path }
+    NamedPipe(const std::string &path)
+        : _path{ std::make_unique<std::string>(path) }
     {
     }
     // copy pipe
     NamedPipe(const NamedPipe &other)
-        : _path{ other._path }
+        : _path{ std::make_unique<std::string>(*other._path) }
     {
     }
     ~NamedPipe() = default;
@@ -38,7 +39,7 @@ class NamedPipe : public IIPC
     // copy pipe
     NamedPipe &operator=(const NamedPipe &other)
     {
-        this->_path = other._path;
+        this->_path = std::make_unique<std::string>(*other._path);
         return (*this);
     }
 
@@ -47,7 +48,7 @@ class NamedPipe : public IIPC
     {
         if (_path == nullptr)
             return;
-        std::ifstream in(_path.data(), std::ios::binary);
+        std::ifstream in(_path->c_str(), std::ios::binary);
         in.read(buffer, size);
     }
     // read next line from fifo
@@ -55,7 +56,7 @@ class NamedPipe : public IIPC
     {
         if (_path == nullptr)
             return;
-        std::ifstream in(_path.data(), std::ios::binary);
+        std::ifstream in(_path->c_str(), std::ios::binary);
         in.getline(buffer, size);
     }
     // write message to fifo
@@ -63,31 +64,31 @@ class NamedPipe : public IIPC
     {
         if (_path == nullptr)
             return;
-        std::ofstream out(_path.data(), std::ios::binary);
+        std::ofstream out(_path->c_str(), std::ios::binary);
         out.write(buffer, size);
     }
     bool good() const override final
     {
-        return (_path != nullptr && access(_path.data(), F_OK | R_OK | W_OK) != -1);
+        return (_path != nullptr && access(_path->c_str(), F_OK | R_OK | W_OK) != -1);
     }
 
     // set the FIFO path and check for r/w access
-    bool open(const std::string_view &path)
+    bool open(const std::string &path)
     {
-        _path = path;
+        _path = std::make_unique<std::string>(path);
         return (this->good());
     }
     // create a FIFO file
     bool make(void) const
     {
-        return (mkfifo(_path.data(), 0666) == 0);
+        return (mkfifo(_path->c_str(), 0666) == 0);
     }
     // delete a FIFO file
     bool remove(void) const
     {
-        return (::remove(_path.data()) == 0);
+        return (::remove(_path->c_str()) == 0);
     }
 
   private:
-    std::string_view _path;
+    std::unique_ptr<std::string> _path;
 };
