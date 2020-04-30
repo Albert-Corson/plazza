@@ -27,13 +27,15 @@ const std::unordered_map<std::string_view, Kitchen::commandInfo_t> Kitchen::__co
 
 Kitchen::Kitchen(std::unique_ptr<IPCProtocol> &IPC)
     : _IPC(std::move(IPC))
+    , _fridge(std::make_shared<Fridge>())
+    , _orderQueue(std::make_shared<OrderQueue>())
     , _running(false)
     , _cookTimeMultiplier(0)
-    , _maxCooks(0)
+    , _maxOrderQueue(0)
 {
 }
 
-void Kitchen::run()
+void Kitchen::start()
 {
     commandPtr_t cmd = nullptr;
     std::vector<std::string> argv;
@@ -51,7 +53,7 @@ void Kitchen::run()
     }
 }
 
-void Kitchen::stop() 
+void Kitchen::stop()
 {
     _stop();
 }
@@ -75,7 +77,7 @@ Kitchen::commandPtr_t Kitchen::_validateCommand(const argv_t &argv)
     return (info.cmdPtr);
 }
 
-void Kitchen::_successResponse() 
+void Kitchen::_successResponse()
 {
     _IPC->send("OK");
 }
@@ -91,14 +93,14 @@ void Kitchen::_errorResponse(const std::string_view &message, const argv_t &fail
     std::cerr << std::endl;
 }
 
-bool Kitchen::_help(const argv_t &argv) 
+bool Kitchen::_help(const argv_t &argv)
 {
     for (const auto &it : Kitchen::__commands)
         std::cerr << "\t" << it.first << " " << it.second.usage << std::endl;
     return (true);
 }
 
-bool Kitchen::_start(const argv_t &argv) 
+bool Kitchen::_start(const argv_t &argv)
 {
     try {
         size_t read = 0;
@@ -107,7 +109,7 @@ bool Kitchen::_start(const argv_t &argv)
         if (read < argv[1].size())
             return (false);
 
-        const size_t maxCooks = std::stoul(argv[2], &read);
+        size_t maxCooks = std::stoul(argv[2], &read);
         if (read < argv[2].size())
             return (false);
 
@@ -116,15 +118,19 @@ bool Kitchen::_start(const argv_t &argv)
             return (false);
 
         _cookTimeMultiplier = multiplier;
-        _maxCooks = maxCooks;
-        _fridge.run(restockRate);
+        _maxOrderQueue = maxCooks;
+        _fridge->start(restockRate);
+        for (; maxCooks > 0; --maxCooks) {
+            _cooks.emplace_back(_orderQueue, _fridge, _cookTimeMultiplier);
+            _cooks.back().start();
+        }
     } catch (...) {
         return (false);
     }
     return (true);
 }
 
-bool Kitchen::_newRecipe(const argv_t &argv) 
+bool Kitchen::_newRecipe(const argv_t &argv)
 {
     if ((argv.size() % 2) == 0)
         return (false);
@@ -139,10 +145,9 @@ bool Kitchen::_newRecipe(const argv_t &argv)
         auto end = argv.end();
         for (; it != end; it += 2) {
             pizza.addIngredientToRecipe(Ingredient(*it, std::stoul(*(it + 1))));
-            if (!_fridge.knownIngredient(*it))
-                _fridge.newIngredient(*it);
+            if (!_fridge->isKnownIngredient(*it))
+                _fridge->newIngredient(*it);
         }
-
         _recipe.emplace_back(std::move(pizza));
     } catch (...) {
         return (false);
@@ -150,13 +155,16 @@ bool Kitchen::_newRecipe(const argv_t &argv)
     return (true);
 }
 
-bool Kitchen::_order(const argv_t &argv) 
+bool Kitchen::_order(const argv_t &argv)
 {
-    throw "TO DO";
+    for (const auto &it : _recipe) {
+        if (it.getName() == argv[1])
+            _orderQueue->addOrder(it);
+    }
     return (false);
 }
 
-bool Kitchen::_stop(const argv_t &argv) 
+bool Kitchen::_stop(const argv_t &argv)
 {
     _running = false;
     return (true);

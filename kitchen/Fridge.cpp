@@ -19,33 +19,19 @@ Fridge::Fridge()
 {
 }
 
-Fridge::~Fridge() 
+Fridge::~Fridge()
 {
     _running = false;
     _restocker.join();
 }
 
-void Fridge::newIngredient(const std::string_view &ingredient, size_t amount)
+void Fridge::start(millisec_t restockRate)
 {
-    if (knownIngredient(ingredient))
-        throw Fridge::Exception("addIngredient: `" + std::string(ingredient) + "` already exists");
-    _stock.emplace_back(Ingredient(ingredient, amount));
-}
-
-bool Fridge::knownIngredient(const std::string_view &ingredient) const noexcept
-{
-    for (const auto &it : _stock) {
-        if (it->getName() == ingredient)
-            return (true);
-    }
-    return (false);
-}
-
-void Fridge::run(millisec_t restockRate)
-{
+    if (_running)
+        throw Fridge::Exception("start: already running");
     _restockRate = restockRate;
     if (_restockRate < 0)
-        throw Fridge::Exception("run: invalid `restockRate`: " + std::to_string(_restockRate));
+        throw Fridge::Exception("start: invalid `restockRate`: " + std::to_string(_restockRate));
     _running = true;
     _timer.reset();
     _restocker.run([&]() {
@@ -56,14 +42,43 @@ void Fridge::run(millisec_t restockRate)
     });
 }
 
+void Fridge::newIngredient(const std::string_view &ingredient, size_t amount)
+{
+    if (isKnownIngredient(ingredient))
+        throw Fridge::Exception("addIngredient: `" + std::string(ingredient) + "` already exists");
+    _stock.emplace_back(Ingredient(ingredient, amount));
+}
+
+bool Fridge::isKnownIngredient(const std::string_view &ingredient) const noexcept
+{
+    for (const auto &it : _stock) {
+        if (it->getName() == ingredient)
+            return (true);
+    }
+    return (false);
+}
+
+void Fridge::take(const std::string_view &ingredient, size_t amount)
+{
+    auto elem = std::find_if(_stock.begin(), _stock.end(), [&ingredient](auto &it) {
+        return (it->getName() == ingredient);
+    });
+    while (amount > 0) {
+        auto lock = elem->wait([](const Ingredient &it) {
+            return (it.getAmount() > 0);
+        });
+        amount -= (*elem)->take(amount);
+    }
+}
+
 void Fridge::_waitForRestock() noexcept
 {
-    static millisec_t elapsed =  0;
+    static millisec_t elapsed = 0;
     millisec_t curr = elapsed + _timer.getElapsedMillisecond();
 
     while (curr < _restockRate) {
         usleep(_restockRate - curr);
-        curr = elapsed +_timer.getElapsedMillisecond();
+        curr = elapsed + _timer.getElapsedMillisecond();
     }
     _timer.reset();
     elapsed = curr - _restockRate;

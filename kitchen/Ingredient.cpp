@@ -12,27 +12,26 @@ Ingredient::Exception::Exception(const std::string &msg)
 {
 }
 
-Ingredient::Ingredient(const std::string_view &ingredient, size_t amount) 
+Ingredient::Ingredient(const std::string_view &ingredient, size_t amount)
     : _name(ingredient)
     , _amount(amount)
 {
 }
 
-Ingredient::Ingredient(const Ingredient &other) 
+Ingredient::Ingredient(const Ingredient &other)
     : _name(other._name)
     , _amount(other._amount)
 {
 }
 
-Ingredient& Ingredient::operator=(Ingredient &&other) 
+Ingredient &Ingredient::operator=(Ingredient &&other)
 {
     _name = std::move(other._name);
     _amount = other._amount;
     return (*this);
 }
 
-
-const std::string& Ingredient::getName() const noexcept
+const std::string &Ingredient::getName() const noexcept
 {
     return (_name);
 }
@@ -42,11 +41,12 @@ size_t Ingredient::getAmount() const noexcept
     return (_amount);
 }
 
-void Ingredient::take(size_t amount) 
+size_t Ingredient::take(size_t wantedAmount)
 {
-    if (_amount < amount)
-        throw Ingredient::Exception("take: tried taking " + std::to_string(amount) + " " + _name + " but the available amount is " + std::to_string(_amount));
-    _amount -= amount;
+    size_t taken = wantedAmount > _amount ? _amount : wantedAmount;
+
+    _amount -= taken;
+    return (taken);
 }
 
 void Ingredient::add(size_t amount) noexcept

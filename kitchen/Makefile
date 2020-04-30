@@ -9,6 +9,8 @@ CC	=	g++
 
 SRC	=	main.cpp					\
 		Kitchen.cpp					\
+		Cook.cpp					\
+		OrderQueue.cpp				\
 		Pizza.cpp					\
 		Fridge.cpp					\
 		Ingredient.cpp

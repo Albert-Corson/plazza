@@ -8,6 +8,7 @@
 #pragma once
 
 #include <string_view>
+#include <vector>
 
 #include "deps/Clock.hpp"
 #include "Ingredient.hpp"
@@ -15,6 +16,7 @@
 class Pizza {
     public:
         Pizza(const std::string_view &name, millisec_t cookTime);
+        Pizza(const Pizza &other);
 
         const std::string &getName() const noexcept;
         millisec_t getCookTime() const noexcept;

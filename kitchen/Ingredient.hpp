@@ -9,31 +9,30 @@
 
 #include <string_view>
 
-#include "deps/ResourceLock.hpp"
 #include "deps/Exception.hpp"
 
 class Ingredient {
-public:
-    class Exception;
+    public:
+        class Exception;
 
-    Ingredient(const std::string_view &ingredient, size_t amount);
-    Ingredient(const Ingredient &other);
-    Ingredient() = default;
-    Ingredient &operator=(Ingredient &&other);
+        Ingredient(const std::string_view &ingredient, size_t amount);
+        Ingredient(const Ingredient &other);
+        Ingredient() = default;
+        Ingredient &operator=(Ingredient &&other);
 
-    const std::string &getName() const noexcept;
-    size_t getAmount() const noexcept;
+        const std::string &getName() const noexcept;
+        size_t getAmount() const noexcept;
 
-    void take(size_t amount);
-    void add(size_t amount = 1) noexcept;
+        size_t take(size_t wantedAmount);
+        void add(size_t amount = 1) noexcept;
 
-private:
-    std::string _name;
-    size_t _amount;
+    private:
+        std::string _name;
+        size_t _amount;
 };
 
 class Ingredient::Exception : public ::Exception {
-public:
-    Exception(const std::string &msg);
-    ~Exception() override = default;
+    public:
+        Exception(const std::string &msg);
+        ~Exception() override = default;
 };

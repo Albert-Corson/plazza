@@ -80,7 +80,7 @@ class ResourceLock : private std::recursive_mutex {
 
         void apply(std::function<void (T &)> function)
         {
-            auto lg = lock_guard();
+            auto lock = unique_lock();
 
             function(_resource);
         }
@@ -91,27 +91,27 @@ class ResourceLock : private std::recursive_mutex {
             unlock();
         }
 
-        std::lock_guard<ResourceLock> lock_guard()
+        std::unique_lock<ResourceLock> unique_lock()
         {
-            return (std::lock_guard<ResourceLock>(*this));
+            return (std::unique_lock<ResourceLock>(*this));
         }
 
-        void wait(std::function<bool (const T &)> predicate)
+        std::unique_lock<ResourceLock<T>> wait(std::function<bool (const T &)> predicate)
         {
-            std::unique_lock<ResourceLock<T>> _unqLock(*this);
+            auto unqLock = unique_lock();
 
-            _condVar.wait(_unqLock, [&]() {
+            _condVar.wait(unqLock, [&]() {
                 return predicate(_resource);
             });
-            _unqLock.unlock();
+            return (unqLock);
         }
 
-        void wait()
+        std::unique_lock<ResourceLock<T>> wait()
         {
             std::unique_lock<ResourceLock<T>> unqLock(*this);
 
             _condVar.wait(unqLock);
-            unqLock.unlock();
+            return (unqLock);
         }
 
         void notify_one()

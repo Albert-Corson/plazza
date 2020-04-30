@@ -49,6 +49,6 @@ int main(int argc, char const *argv[])
         return (84);
     }
     Kitchen kitchen(ipc);
-    kitchen.run();
+    kitchen.start();
     return (0);
 }

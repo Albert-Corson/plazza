@@ -15,29 +15,30 @@
 #include "Ingredient.hpp"
 
 class Fridge {
-public:
-    class Exception;
+    public:
+        class Exception;
 
-    Fridge();
-    ~Fridge();
+        Fridge();
+        ~Fridge();
 
-    void newIngredient(const std::string_view &ingredient, size_t amount = 5);
-    bool knownIngredient(const std::string_view &ingredient) const noexcept;
-    void run(millisec_t restockRate);
+        void start(millisec_t restockRate);
+        void newIngredient(const std::string_view &ingredient, size_t amount = 5);
+        bool isKnownIngredient(const std::string_view &ingredient) const noexcept;
+        void take(const std::string_view &ingredient, size_t amount);
 
-private:
-    millisec_t _restockRate;
-    Clock _timer;
-    Thread _restocker;
-    bool _running;
-    std::vector<ResourceLock<Ingredient>> _stock;
+    private:
+        millisec_t _restockRate;
+        Clock _timer;
+        Thread _restocker;
+        bool _running;
+        std::vector<ResourceLock<Ingredient>> _stock;
 
-    void _waitForRestock() noexcept;
-    void _restockOneOfEach();
+        void _waitForRestock() noexcept;
+        void _restockOneOfEach();
 };
 
 class Fridge::Exception : public ::Exception {
-public:
-    Exception(const std::string &msg);
-    ~Exception() override = default;
+    public:
+        Exception(const std::string &msg);
+        ~Exception() override = default;
 };

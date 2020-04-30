@@ -103,6 +103,7 @@ class Thread {
                 throw Exception("Trying to drop not joined / not detached thread");
             _id = other._id;
             _joinable = other._joinable;
+            return (*this);
         }
 
         ~Thread() noexcept(false)
