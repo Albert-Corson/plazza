@@ -5,8 +5,9 @@
 ** Fridge
 */
 
+#include <thread>
+
 #include "Fridge.hpp"
-#include <unistd.h>
 
 Fridge::Exception::Exception(const std::string &msg)
     : ::Exception("Fridge::Exception: " + msg)
@@ -21,7 +22,7 @@ Fridge::Fridge()
 
 Fridge::~Fridge()
 {
-    _running = false;
+    stop();
     _restocker.join();
 }
 
@@ -63,12 +64,21 @@ void Fridge::take(const std::string_view &ingredient, size_t amount)
     auto elem = std::find_if(_stock.begin(), _stock.end(), [&ingredient](auto &it) {
         return (it->getName() == ingredient);
     });
-    while (amount > 0) {
-        auto lock = elem->wait([](const Ingredient &it) {
-            return (it.getAmount() > 0);
+    while (_running && amount > 0) {
+        auto lock = elem->wait([&](const Ingredient &it) {
+            return (it.getAmount() > 0 || !_running);
         });
         amount -= (*elem)->take(amount);
     }
+    if (!_running)
+        throw Fridge::Exception("take: fridge not running");
+}
+
+void Fridge::stop()
+{
+    _running = false;
+    for (auto &it : _stock)
+        it.notify_all();
 }
 
 void Fridge::_waitForRestock() noexcept
@@ -77,7 +87,7 @@ void Fridge::_waitForRestock() noexcept
     millisec_t curr = elapsed + _timer.getElapsedMillisecond();
 
     while (curr < _restockRate) {
-        usleep(_restockRate - curr);
+        std::this_thread::sleep_for(std::chrono::milliseconds(_restockRate - curr));
         curr = elapsed + _timer.getElapsedMillisecond();
     }
     _timer.reset();

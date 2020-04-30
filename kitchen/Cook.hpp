@@ -16,8 +16,7 @@
 
 class Cook {
     public:
-        Cook(std::shared_ptr<OrderQueue> &orderQueue, std::shared_ptr<Fridge> &fridge, float cookTimeMultiplier);
-        Cook(Cook &&other);
+        Cook(const std::weak_ptr<OrderQueue> &orderQueue, const std::weak_ptr<Fridge> &fridge, float cookTimeMultiplier, std::ostream &logOut);
         ~Cook();
 
         bool isCooking() const noexcept;
@@ -25,8 +24,9 @@ class Cook {
 
     private:
         Thread _worker;
-        std::shared_ptr<OrderQueue> _orderQueue;
-        std::shared_ptr<Fridge> _fridge;
+        std::ostream &_logOut;
+        std::weak_ptr<OrderQueue> _orderQueue;
+        std::weak_ptr<Fridge> _fridge;
         const float _cookTimeMultiplier;
         bool _running;
         bool _cooking;

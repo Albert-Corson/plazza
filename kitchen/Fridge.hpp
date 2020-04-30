@@ -25,6 +25,7 @@ class Fridge {
         void newIngredient(const std::string_view &ingredient, size_t amount = 5);
         bool isKnownIngredient(const std::string_view &ingredient) const noexcept;
         void take(const std::string_view &ingredient, size_t amount);
+        void stop();
 
     private:
         millisec_t _restockRate;

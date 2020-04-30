@@ -5,11 +5,15 @@
 ** Cook
 */
 
-#include "Cook.hpp"
-#include <unistd.h>
+#include <ostream>
+#include <thread>
+#include <chrono>
 
-Cook::Cook(std::shared_ptr<OrderQueue> &orderQueue, std::shared_ptr<Fridge> &fridge, float cookTimeMultiplier)
-    : _orderQueue(orderQueue)
+#include "Cook.hpp"
+
+Cook::Cook(const std::weak_ptr<OrderQueue> &orderQueue, const std::weak_ptr<Fridge> &fridge, float cookTimeMultiplier, std::ostream &logOut)
+    : _logOut(logOut)
+    , _orderQueue(orderQueue)
     , _fridge(fridge)
     , _cookTimeMultiplier(cookTimeMultiplier)
     , _running(false)
@@ -17,15 +21,6 @@ Cook::Cook(std::shared_ptr<OrderQueue> &orderQueue, std::shared_ptr<Fridge> &fri
 {
 }
 
-Cook::Cook(Cook &&other)
-    : _worker(std::move(other._worker))
-    , _orderQueue(std::move(other._orderQueue))
-    , _fridge(std::move(other._fridge))
-    , _cookTimeMultiplier(other._cookTimeMultiplier)
-    , _running(other._running)
-    , _cooking(other._cooking)
-{
-}
 
 Cook::~Cook()
 {
@@ -50,14 +45,27 @@ void Cook::start()
 
 void Cook::_cookNext()
 {
-    const Pizza pizza = _orderQueue->waitForOrder();
+    auto queuePtr = _orderQueue.lock();
+    auto fridgePtr = _fridge.lock();
 
-    _cooking = true;
-    for (const auto &it : pizza.getRecipe())
-        _fridge->take(it.getName(), it.getAmount());
+    if (queuePtr == nullptr || fridgePtr == nullptr) {
+        _running = false;
+        return;
+    }
+    try {
+        const Pizza pizza = queuePtr->waitForOrder();
+        _cooking = true;
+        for (const auto &it : pizza.getRecipe())
+            fridgePtr->take(it.getName(), it.getAmount());
 
-    usleep(static_cast<float>(pizza.getCookTime()) * _cookTimeMultiplier);
+        float realtime = pizza.getCookTime();
+        realtime *= _cookTimeMultiplier;
+        std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<size_t>(realtime)));
 
-    _cooking = false;
-    // TO DO: log pizzas
+        _cooking = false;
+        _logOut << pizza.getName() << std::endl;
+    } catch (const Exception &) {
+        _running = false;
+        return;
+    }
 }

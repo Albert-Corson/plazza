@@ -48,7 +48,12 @@ int main(int argc, char const *argv[])
         help(argv[0]);
         return (84);
     }
-    Kitchen kitchen(ipc);
-    kitchen.start();
+    try {
+        Kitchen kitchen(ipc, argc == 3 ? log : std::cout);
+        kitchen.start();
+    } catch (const Exception &err) {
+        std::cerr << err.what() << std::endl;
+        return (84);
+    }
     return (0);
 }

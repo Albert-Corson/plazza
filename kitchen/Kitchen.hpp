@@ -22,7 +22,8 @@ class Kitchen {
     public:
         class Exception;
 
-        Kitchen(std::unique_ptr<IPCProtocol> &IPC);
+        Kitchen(std::unique_ptr<IPCProtocol> &IPC, std::ostream &logOut);
+        ~Kitchen();
 
         void start();
         void stop();
@@ -41,6 +42,8 @@ class Kitchen {
         static const std::unordered_map<std::string_view, commandInfo_t> __commands;
 
         std::unique_ptr<IPCProtocol> _IPC;
+        std::ostream &_logOut;
+
         std::shared_ptr<Fridge> _fridge;
         std::shared_ptr<OrderQueue> _orderQueue;
         bool _running;
@@ -48,14 +51,14 @@ class Kitchen {
         float _cookTimeMultiplier;
         size_t _maxOrderQueue;
         std::vector<Pizza> _recipe;
-        std::vector<Cook> _cooks;
+        std::vector<std::unique_ptr<Cook>> _cooks;
 
         commandPtr_t _validateCommand(const argv_t &argv);
         void _errorResponse(const std::string_view &message, const argv_t &failedCmd = {});
         void _successResponse();
-        bool _help(const argv_t &argv = {});
-        bool _start(const argv_t &argv);
-        bool _newRecipe(const argv_t &argv);
-        bool _order(const argv_t &argv);
-        bool _stop(const argv_t &argv = {});
+        bool _cmdHelp(const argv_t &argv = {});
+        bool _cmdStart(const argv_t &argv);
+        bool _cmdNewRecipe(const argv_t &argv);
+        bool _cmdOrder(const argv_t &argv);
+        bool _cmdStop(const argv_t &argv = {});
 };

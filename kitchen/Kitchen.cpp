@@ -9,30 +9,37 @@
 
 const std::unordered_map<std::string_view, Kitchen::commandInfo_t> Kitchen::__commands = {
     { "HELP",
-        { &Kitchen::_help, 1, 0, ": show this on stderr only." }
+        { &Kitchen::_cmdHelp, 1, 0, ": show this on stderr only." }
     },
     { "START",
-        { &Kitchen::_start, 4, 4, "<multiplier> <cooks> <refill_rate_ms>: Initialize a kitchen." }
+        { &Kitchen::_cmdStart, 4, 4, "<multiplier> <cooks> <refill_rate_ms>: Initialize a kitchen." }
     },
     { "NEW_RECIPE",
-        { &Kitchen::_newRecipe, 4, 0, "<name> <cook_time_ms> [<ingredient> <amount>]...: Add a pizza recipe to the menu." }
+        { &Kitchen::_cmdNewRecipe, 4, 0, "<name> <cook_time_ms> [<ingredient> <amount>]...: Add a pizza recipe to the menu." }
     },
     { "ORDER",
-        { &Kitchen::_order, 2, 2, "<name>: Start cooking a pizza." }
+        { &Kitchen::_cmdOrder, 2, 2, "<name>: Start cooking a pizza." }
     },
     { "STOP",
-        { &Kitchen::_stop, 1, 0, ": Close kitchen." }
+        { &Kitchen::_cmdStop, 1, 0, ": Close kitchen." }
     }
 };
 
-Kitchen::Kitchen(std::unique_ptr<IPCProtocol> &IPC)
+Kitchen::Kitchen(std::unique_ptr<IPCProtocol> &IPC, std::ostream &logOut)
     : _IPC(std::move(IPC))
+    , _logOut(logOut)
     , _fridge(std::make_shared<Fridge>())
     , _orderQueue(std::make_shared<OrderQueue>())
     , _running(false)
     , _cookTimeMultiplier(0)
     , _maxOrderQueue(0)
 {
+}
+
+Kitchen::~Kitchen()
+{
+    _fridge->stop();
+    _orderQueue->close();
 }
 
 void Kitchen::start()
@@ -55,7 +62,7 @@ void Kitchen::start()
 
 void Kitchen::stop()
 {
-    _stop();
+    _cmdStop();
 }
 
 Kitchen::commandPtr_t Kitchen::_validateCommand(const argv_t &argv)
@@ -93,14 +100,14 @@ void Kitchen::_errorResponse(const std::string_view &message, const argv_t &fail
     std::cerr << std::endl;
 }
 
-bool Kitchen::_help(const argv_t &argv)
+bool Kitchen::_cmdHelp(const argv_t &argv)
 {
     for (const auto &it : Kitchen::__commands)
         std::cerr << "\t" << it.first << " " << it.second.usage << std::endl;
     return (true);
 }
 
-bool Kitchen::_start(const argv_t &argv)
+bool Kitchen::_cmdStart(const argv_t &argv)
 {
     try {
         size_t read = 0;
@@ -121,8 +128,8 @@ bool Kitchen::_start(const argv_t &argv)
         _maxOrderQueue = maxCooks;
         _fridge->start(restockRate);
         for (; maxCooks > 0; --maxCooks) {
-            _cooks.emplace_back(_orderQueue, _fridge, _cookTimeMultiplier);
-            _cooks.back().start();
+            _cooks.emplace_back(std::make_unique<Cook>(_orderQueue, _fridge, _cookTimeMultiplier, _logOut));
+            _cooks.back()->start();
         }
     } catch (...) {
         return (false);
@@ -130,7 +137,7 @@ bool Kitchen::_start(const argv_t &argv)
     return (true);
 }
 
-bool Kitchen::_newRecipe(const argv_t &argv)
+bool Kitchen::_cmdNewRecipe(const argv_t &argv)
 {
     if ((argv.size() % 2) == 0)
         return (false);
@@ -143,8 +150,12 @@ bool Kitchen::_newRecipe(const argv_t &argv)
 
         auto it = argv.begin() + 3;
         auto end = argv.end();
+        size_t amount = 0;
         for (; it != end; it += 2) {
-            pizza.addIngredientToRecipe(Ingredient(*it, std::stoul(*(it + 1))));
+            amount = std::stoul(*(it + 1));
+            if (!amount)
+                continue;
+            pizza.addIngredientToRecipe(Ingredient(*it, amount));
             if (!_fridge->isKnownIngredient(*it))
                 _fridge->newIngredient(*it);
         }
@@ -155,16 +166,20 @@ bool Kitchen::_newRecipe(const argv_t &argv)
     return (true);
 }
 
-bool Kitchen::_order(const argv_t &argv)
+bool Kitchen::_cmdOrder(const argv_t &argv)
 {
+    if (_orderQueue->getSize() > _maxOrderQueue)
+        return (false);
     for (const auto &it : _recipe) {
-        if (it.getName() == argv[1])
+        if (it.getName() == argv[1]) {
             _orderQueue->addOrder(it);
+            return (true);
+        }
     }
     return (false);
 }
 
-bool Kitchen::_stop(const argv_t &argv)
+bool Kitchen::_cmdStop(const argv_t &argv)
 {
     _running = false;
     return (true);
