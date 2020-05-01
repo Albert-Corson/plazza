@@ -41,19 +41,17 @@ int main(int argc, char const *argv[])
         }
     }
     std::unique_ptr<IPCProtocol> ipc = initIPC(argc, argv);
-    if (argc == 3) {
-        log.open(argv[2]);
-    }
     if (argc > 3 || ipc == nullptr || !ipc->good() || !log.good()) {
         help(argv[0]);
-        return (84);
+        return (1);
     }
     try {
-        Kitchen kitchen(ipc, argc == 3 ? log : std::cout);
+        Kitchen kitchen(ipc, argc == 3 ? argv[2] : "");
         kitchen.start();
-    } catch (const Exception &err) {
-        std::cerr << err.what() << std::endl;
-        return (84);
+    } catch (const std::exception &err) {
+        std::cerr << "Kitchen fatal error:" << std::endl
+                  << "\t" << err.what() << std::endl;
+        return (1);
     }
     return (0);
 }

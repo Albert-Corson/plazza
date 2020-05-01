@@ -22,16 +22,27 @@ OrderQueue::~OrderQueue()
     close();
 }
 
-const Pizza OrderQueue::waitForOrder()
+Pizza &OrderQueue::waitForOrder()
 {
     auto lockGuard = _queue.wait([&](const auto &queue) {
-        return (queue.size() > 0 || !_running);
+        if (!_running)
+            return (true);
+        for (const auto &it : queue) {
+            if (it.getStatus() == Pizza::IDLE)
+                return (true);
+        }
+        return (false);
     });
-    if (!_running)
-        throw OrderQueue::Exception("waitForOrder: queue closed");
-    Pizza pizza(_queue->front());
-    _queue->pop_front();
-    return (pizza);
+    if (_running) {
+        for (auto &it : *_queue) {
+            if (it.getStatus() == Pizza::IDLE) {
+                it.setStatus(Pizza::COOKING);
+                _queue.notify_all();
+                return (it);
+            }
+        }
+    }
+    throw OrderQueue::Exception("waitForOrder: queue closed");
 }
 
 void OrderQueue::addOrder(const Pizza &pizza)
@@ -47,8 +58,38 @@ size_t OrderQueue::getSize() const noexcept
     return (_queue.read().size());
 }
 
+const std::list<Pizza>& OrderQueue::getQueue() const noexcept
+{
+    return (_queue.read());
+}
+
+void OrderQueue::removeCookedPizzas() 
+{
+    auto lock = _queue.unique_lock();
+    auto it = _queue->begin();
+
+    while (it != _queue->end()) {
+        if (it->getStatus() == Pizza::COOKED) {
+            it = _queue->erase(it);
+        } else {
+            ++it;
+        }
+    }
+    _queue.notify_all();
+}
+
 void OrderQueue::close() 
 {
     _running = false;
     _queue.notify_all();
+}
+
+void OrderQueue::lock() 
+{
+    _queue.lock();
+}
+
+void OrderQueue::unlock() 
+{
+    _queue.unique_lock();
 }

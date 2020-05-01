@@ -23,7 +23,6 @@ Fridge::Fridge()
 Fridge::~Fridge()
 {
     stop();
-    _restocker.join();
 }
 
 void Fridge::start(millisec_t restockRate)
@@ -35,12 +34,24 @@ void Fridge::start(millisec_t restockRate)
         throw Fridge::Exception("start: invalid `restockRate`: " + std::to_string(_restockRate));
     _running = true;
     _timer.reset();
-    _restocker.run([&]() {
-        while (_running) {
-            _waitForRestock();
-            _restockOneOfEach();
-        }
-    });
+}
+
+bool Fridge::tryRestock() noexcept
+{
+    static millisec_t leftover = 0;
+    if (!_running)
+        return (false);
+    millisec_t elapsed = leftover + _timer.getElapsedMillisecond();
+
+    if (elapsed < _restockRate)
+        return (false);
+    _timer.reset();
+    while (elapsed >= _restockRate) {
+        _restockOneOfEach();
+        elapsed -= _restockRate;
+    }
+    leftover = elapsed;
+    return (true);
 }
 
 void Fridge::newIngredient(const std::string_view &ingredient, size_t amount)
@@ -81,20 +92,7 @@ void Fridge::stop()
         it.notify_all();
 }
 
-void Fridge::_waitForRestock() noexcept
-{
-    static millisec_t elapsed = 0;
-    millisec_t curr = elapsed + _timer.getElapsedMillisecond();
-
-    while (curr < _restockRate) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(_restockRate - curr));
-        curr = elapsed + _timer.getElapsedMillisecond();
-    }
-    _timer.reset();
-    elapsed = curr - _restockRate;
-}
-
-void Fridge::_restockOneOfEach()
+void Fridge::_restockOneOfEach() noexcept
 {
     for (auto &it : _stock) {
         it.apply([](Ingredient &curr) {

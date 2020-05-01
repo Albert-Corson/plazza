@@ -12,12 +12,14 @@
 Pizza::Pizza(const std::string_view &name, millisec_t cookTime)
     : _name(name.data())
     , _cookTime(cookTime)
+    , _status(IDLE)
 {
 }
 
 Pizza::Pizza(const Pizza &other)
     : _name(other._name)
     , _cookTime(other._cookTime)
+    , _status(other._status)
     , _recipe(other._recipe)
 {
 }
@@ -35,6 +37,16 @@ millisec_t Pizza::getCookTime() const noexcept
 const std::vector<Ingredient> &Pizza::getRecipe() const noexcept
 {
     return (_recipe);
+}
+
+Pizza::status_t Pizza::getStatus() const noexcept
+{
+    return (_status);
+}
+
+void Pizza::setStatus(Pizza::status_t status) noexcept
+{
+    _status = status;
 }
 
 void Pizza::addIngredientToRecipe(Ingredient &&ingredient)

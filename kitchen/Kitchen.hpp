@@ -17,12 +17,13 @@
 #include "Fridge.hpp"
 #include "Cook.hpp"
 #include "OrderQueue.hpp"
+#include "Log.hpp"
 
 class Kitchen {
     public:
         class Exception;
 
-        Kitchen(std::unique_ptr<IPCProtocol> &IPC, std::ostream &logOut);
+        Kitchen(std::unique_ptr<IPCProtocol> &IPC, const std::string_view &logFile);
         ~Kitchen();
 
         void start();
@@ -30,7 +31,7 @@ class Kitchen {
 
     private:
         using argv_t = std::vector<std::string>;
-        using commandPtr_t = bool (Kitchen::*)(const argv_t &);
+        using commandPtr_t = bool (Kitchen::*)(const argv_t &, std::string &);
 
         struct commandInfo_t {
             commandPtr_t cmdPtr;
@@ -39,11 +40,13 @@ class Kitchen {
             std::string_view usage;
         };
 
+        static const millisec_t __timeout;
         static const std::unordered_map<std::string_view, commandInfo_t> __commands;
 
         std::unique_ptr<IPCProtocol> _IPC;
-        std::ostream &_logOut;
 
+        Thread _manager;
+        std::shared_ptr<Log> _logStream;
         std::shared_ptr<Fridge> _fridge;
         std::shared_ptr<OrderQueue> _orderQueue;
         bool _running;
@@ -55,10 +58,13 @@ class Kitchen {
 
         commandPtr_t _validateCommand(const argv_t &argv);
         void _errorResponse(const std::string_view &message, const argv_t &failedCmd = {});
-        void _successResponse();
-        bool _cmdHelp(const argv_t &argv = {});
-        bool _cmdStart(const argv_t &argv);
-        bool _cmdNewRecipe(const argv_t &argv);
-        bool _cmdOrder(const argv_t &argv);
-        bool _cmdStop(const argv_t &argv = {});
+        void _successResponse(const std::string &message);
+        void _startManager();
+
+        bool _cmdHelp(const argv_t &argv, std::string &responseMsg);
+        bool _cmdStart(const argv_t &argv, std::string &responseMsg);
+        bool _cmdNewRecipe(const argv_t &argv, std::string &responseMsg);
+        bool _cmdOrder(const argv_t &argv, std::string &responseMsg);
+        bool _cmdStatus(const argv_t &argv, std::string &responseMsg);
+        bool _cmdStop(const argv_t &argv, std::string &responseMsg);
 };

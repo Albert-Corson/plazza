@@ -6,6 +6,9 @@
 */
 
 #include "Kitchen.hpp"
+#include "deps/KitchenStatus.hpp"
+
+const millisec_t Kitchen::__timeout = 5000;
 
 const std::unordered_map<std::string_view, Kitchen::commandInfo_t> Kitchen::__commands = {
     { "HELP",
@@ -20,26 +23,31 @@ const std::unordered_map<std::string_view, Kitchen::commandInfo_t> Kitchen::__co
     { "ORDER",
         { &Kitchen::_cmdOrder, 2, 2, "<name>: Start cooking a pizza." }
     },
+    { "STATUS",
+        { &Kitchen::_cmdStatus, 1, 1, "[<any>]: Get the status of the kitchen. If <any> is present, data will be serialized." }
+    },
     { "STOP",
         { &Kitchen::_cmdStop, 1, 0, ": Close kitchen." }
     }
 };
 
-Kitchen::Kitchen(std::unique_ptr<IPCProtocol> &IPC, std::ostream &logOut)
+Kitchen::Kitchen(std::unique_ptr<IPCProtocol> &IPC, const std::string_view &logFile)
     : _IPC(std::move(IPC))
-    , _logOut(logOut)
+    , _logStream(std::make_shared<Log>())
     , _fridge(std::make_shared<Fridge>())
     , _orderQueue(std::make_shared<OrderQueue>())
     , _running(false)
     , _cookTimeMultiplier(0)
     , _maxOrderQueue(0)
 {
+    _logStream->open(logFile);
 }
 
 Kitchen::~Kitchen()
 {
-    _fridge->stop();
-    _orderQueue->close();
+    _IPC = nullptr;
+    stop();
+    _manager.join();
 }
 
 void Kitchen::start()
@@ -48,27 +56,33 @@ void Kitchen::start()
     std::vector<std::string> argv;
 
     _running = true;
+    std::string responseMsg;
     while (_running && _IPC->receive(argv)) {
+        if (!_running)
+            break;
         cmd = _validateCommand(argv);
         if (!cmd)
             continue;
-        if (!(this->*cmd)(argv)) {
-            _errorResponse("Command failed", argv);
+        responseMsg.clear();
+        if (!(this->*cmd)(argv, responseMsg)) {
+            _errorResponse(responseMsg, argv);
         } else {
-            _successResponse();
+            _successResponse(responseMsg);
         }
     }
 }
 
 void Kitchen::stop()
 {
-    _cmdStop();
+    _running = false;
+    _fridge->stop();
+    _orderQueue->close();
 }
 
 Kitchen::commandPtr_t Kitchen::_validateCommand(const argv_t &argv)
 {
     if (argv.size() == 0) {
-        _errorResponse("Invalid empty command, quitting", argv);
+        _errorResponse("Invalid empty command", argv);
         return (nullptr);
     }
     const auto &command = Kitchen::__commands.find(argv[0]);
@@ -84,14 +98,9 @@ Kitchen::commandPtr_t Kitchen::_validateCommand(const argv_t &argv)
     return (info.cmdPtr);
 }
 
-void Kitchen::_successResponse()
-{
-    _IPC->send("OK");
-}
-
 void Kitchen::_errorResponse(const std::string_view &message, const argv_t &failedCmd)
 {
-    _IPC->send("KO:", message);
+    _IPC->send("KO", message);
     if (failedCmd.size() == 0)
         return;
     std::cerr << "\t";
@@ -100,24 +109,62 @@ void Kitchen::_errorResponse(const std::string_view &message, const argv_t &fail
     std::cerr << std::endl;
 }
 
-bool Kitchen::_cmdHelp(const argv_t &argv)
+void Kitchen::_successResponse(const std::string &message)
+{
+    _IPC->send("OK", message);
+}
+
+void Kitchen::_startManager()
+{
+    _manager.run([&]() {
+        std::unique_ptr<Clock> timer;
+
+        while (_running) {
+            if (timer != nullptr && timer->getElapsedMillisecond() >= __timeout) {
+                _errorResponse("kitchen closed for inactivity");
+                stop();
+                return;
+            }
+            _fridge->tryRestock();
+            _orderQueue->removeCookedPizzas();
+            const auto &cook = std::find_if(_cooks.cbegin(), _cooks.cend(), [](const auto &it) {
+                return (it->isCooking());
+            });
+
+            if (cook != _cooks.cend())
+                timer = nullptr;
+            else if (timer == nullptr)
+                timer = std::make_unique<Clock>();
+
+        }
+    });
+}
+
+bool Kitchen::_cmdHelp(const argv_t &argv, std::string &responseMsg)
 {
     for (const auto &it : Kitchen::__commands)
-        std::cerr << "\t" << it.first << " " << it.second.usage << std::endl;
+        std::cout << "\t" << it.first << " " << it.second.usage << std::endl;
     return (true);
 }
 
-bool Kitchen::_cmdStart(const argv_t &argv)
+bool Kitchen::_cmdStart(const argv_t &argv, std::string &responseMsg)
 {
+    static bool started = false;
+
+    if (started) {
+        responseMsg = "kitchen already started";
+        return (false);
+    }
+    responseMsg = "invalid arguments";
     try {
         size_t read = 0;
 
         const float multiplier = std::stof(argv[1], &read);
-        if (read < argv[1].size())
+        if (read < argv[1].size() || multiplier < 0)
             return (false);
 
         size_t maxCooks = std::stoul(argv[2], &read);
-        if (read < argv[2].size())
+        if (read < argv[2].size() || maxCooks == 0)
             return (false);
 
         const millisec_t restockRate = std::stol(argv[3], &read);
@@ -125,22 +172,28 @@ bool Kitchen::_cmdStart(const argv_t &argv)
             return (false);
 
         _cookTimeMultiplier = multiplier;
-        _maxOrderQueue = maxCooks;
+        _maxOrderQueue = maxCooks * 2;
         _fridge->start(restockRate);
         for (; maxCooks > 0; --maxCooks) {
-            _cooks.emplace_back(std::make_unique<Cook>(_orderQueue, _fridge, _cookTimeMultiplier, _logOut));
+            _cooks.emplace_back(std::make_unique<Cook>(_orderQueue, _fridge, _cookTimeMultiplier, _logStream));
             _cooks.back()->start();
         }
+        _startManager();
     } catch (...) {
         return (false);
     }
+    responseMsg.clear();
+    started = true;
     return (true);
 }
 
-bool Kitchen::_cmdNewRecipe(const argv_t &argv)
+bool Kitchen::_cmdNewRecipe(const argv_t &argv, std::string &responseMsg)
 {
-    if ((argv.size() % 2) == 0)
+    if ((argv.size() % 2) == 0) {
+        responseMsg = "incorrect amount of argument";
         return (false);
+    }
+    responseMsg = "invalid format";
     try {
         size_t read = 0;
         millisec_t cookTime = std::stol(argv[2], &read);
@@ -163,24 +216,50 @@ bool Kitchen::_cmdNewRecipe(const argv_t &argv)
     } catch (...) {
         return (false);
     }
+    responseMsg.clear();
     return (true);
 }
 
-bool Kitchen::_cmdOrder(const argv_t &argv)
+bool Kitchen::_cmdOrder(const argv_t &argv, std::string &responseMsg)
 {
-    if (_orderQueue->getSize() > _maxOrderQueue)
+    if (_orderQueue->getSize() >= _maxOrderQueue) {
+        responseMsg = "order queue already at maximum capacity (" + std::to_string(_maxOrderQueue) + ")";
         return (false);
+    }
     for (const auto &it : _recipe) {
         if (it.getName() == argv[1]) {
             _orderQueue->addOrder(it);
             return (true);
         }
     }
+    responseMsg = "unknown pizza";
     return (false);
 }
 
-bool Kitchen::_cmdStop(const argv_t &argv)
+bool Kitchen::_cmdStatus(const argv_t &argv, std::string &responseMsg)
 {
-    _running = false;
+    KitchenStatus status;
+
+    status.orderQueueCapacity = _maxOrderQueue;
+    status.totalCooks = _cooks.size();
+    for (const auto &it : _cooks) {
+        if (it->isCooking())
+            ++status.activeCooks;
+    }
+    for (const auto &it : _orderQueue->getQueue()) {
+        if (it.getStatus() != Pizza::COOKED)
+            status.orderQueue.emplace_back(it.getName(), it.getStatus());
+    }
+    if (argv.size() > 1) {
+        responseMsg = status.serialize();
+    } else {
+        status.dump(std::cout);
+    }
+    return (true);
+}
+
+bool Kitchen::_cmdStop(const argv_t &argv, std::string &responseMsg)
+{
+    stop();
     return (true);
 }

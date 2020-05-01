@@ -13,10 +13,11 @@
 #include "Pizza.hpp"
 #include "Fridge.hpp"
 #include "OrderQueue.hpp"
+#include "Log.hpp"
 
 class Cook {
     public:
-        Cook(const std::weak_ptr<OrderQueue> &orderQueue, const std::weak_ptr<Fridge> &fridge, float cookTimeMultiplier, std::ostream &logOut);
+        Cook(const std::shared_ptr<OrderQueue> &orderQueue, const std::shared_ptr<Fridge> &fridge, float cookTimeMultiplier, std::shared_ptr<Log> &logOut);
         ~Cook();
 
         bool isCooking() const noexcept;
@@ -24,9 +25,9 @@ class Cook {
 
     private:
         Thread _worker;
-        std::ostream &_logOut;
-        std::weak_ptr<OrderQueue> _orderQueue;
-        std::weak_ptr<Fridge> _fridge;
+        std::shared_ptr<Log> _logOut;
+        std::shared_ptr<OrderQueue> _orderQueue;
+        std::shared_ptr<Fridge> _fridge;
         const float _cookTimeMultiplier;
         bool _running;
         bool _cooking;

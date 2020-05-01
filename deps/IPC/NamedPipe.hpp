@@ -34,7 +34,13 @@ class NamedPipe : public IIPC
         : _path{ std::make_unique<std::string>(*other._path) }
     {
     }
-    ~NamedPipe() = default;
+    ~NamedPipe() override
+    {
+        if (_in.is_open())
+            _in.close();
+        if (_out.is_open())
+            _out.close();
+    }
 
     // copy pipe
     NamedPipe &operator=(const NamedPipe &other)
@@ -44,30 +50,35 @@ class NamedPipe : public IIPC
     }
 
     // read message from fifo
-    void receive(char *buffer, std::streamsize size) const override final
+    void receive(char *buffer, std::streamsize size) override final
     {
         if (_path == nullptr)
             return;
-        std::ifstream in(_path->c_str(), std::ios::binary);
-        in.read(buffer, size);
+        _in.open(_path->c_str(), std::ios::binary);
+        _in.read(buffer, size);
+        _in.close();
     }
     // read next line from fifo
-    bool getline(std::string &buffer) const override final
+    bool getline(std::string &buffer) override final
     {
         if (_path == nullptr)
             return (false);
-        std::ifstream in(_path->c_str(), std::ios::binary);
-        if (!std::getline(in, buffer))
+        _in.open(_path->c_str(), std::ios::binary);
+        if (!std::getline(_in, buffer)) {
+            _in.close();
             return (false);
+        }
+        _in.close();
         return (true);
     }
     // write message to fifo
-    void send(const char *buffer, std::streamsize size) const override final
+    void send(const char *buffer, std::streamsize size) override final
     {
         if (_path == nullptr)
             return;
-        std::ofstream out(_path->c_str(), std::ios::binary);
-        out.write(buffer, size);
+        _out.open(_path->c_str(), std::ios::binary);
+        _out.write(buffer, size);
+        _out.close();
     }
     bool good() const override final
     {
@@ -93,4 +104,6 @@ class NamedPipe : public IIPC
 
   private:
     std::unique_ptr<std::string> _path;
+    std::ofstream _out;
+    std::ifstream _in;
 };

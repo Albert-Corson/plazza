@@ -11,7 +11,7 @@
 
 #include "Cook.hpp"
 
-Cook::Cook(const std::weak_ptr<OrderQueue> &orderQueue, const std::weak_ptr<Fridge> &fridge, float cookTimeMultiplier, std::ostream &logOut)
+Cook::Cook(const std::shared_ptr<OrderQueue> &orderQueue, const std::shared_ptr<Fridge> &fridge, float cookTimeMultiplier, std::shared_ptr<Log> &logOut)
     : _logOut(logOut)
     , _orderQueue(orderQueue)
     , _fridge(fridge)
@@ -20,7 +20,6 @@ Cook::Cook(const std::weak_ptr<OrderQueue> &orderQueue, const std::weak_ptr<Frid
     , _cooking(false)
 {
 }
-
 
 Cook::~Cook()
 {
@@ -45,25 +44,19 @@ void Cook::start()
 
 void Cook::_cookNext()
 {
-    auto queuePtr = _orderQueue.lock();
-    auto fridgePtr = _fridge.lock();
-
-    if (queuePtr == nullptr || fridgePtr == nullptr) {
-        _running = false;
-        return;
-    }
     try {
-        const Pizza pizza = queuePtr->waitForOrder();
+        Pizza &pizza = _orderQueue->waitForOrder();
         _cooking = true;
         for (const auto &it : pizza.getRecipe())
-            fridgePtr->take(it.getName(), it.getAmount());
+            _fridge->take(it.getName(), it.getAmount());
 
         float realtime = pizza.getCookTime();
         realtime *= _cookTimeMultiplier;
         std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<size_t>(realtime)));
 
+        pizza.setStatus(Pizza::COOKED);
+        _logOut->log(pizza.getName());
         _cooking = false;
-        _logOut << pizza.getName() << std::endl;
     } catch (const Exception &) {
         _running = false;
         return;

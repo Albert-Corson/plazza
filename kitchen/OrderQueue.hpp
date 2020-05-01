@@ -20,10 +20,14 @@ class OrderQueue {
         OrderQueue();
         ~OrderQueue();
 
-        const Pizza waitForOrder();
+        Pizza &waitForOrder();
         void addOrder(const Pizza &pizza);
         size_t getSize() const noexcept;
+        const std::list<Pizza> &getQueue() const noexcept;
+        void removeCookedPizzas();
         void close();
+        void lock();
+        void unlock();
 
     private:
         bool _running;

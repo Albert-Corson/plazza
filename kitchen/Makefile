@@ -13,6 +13,7 @@ SRC	=	main.cpp					\
 		OrderQueue.cpp				\
 		Pizza.cpp					\
 		Fridge.cpp					\
+		Log.cpp						\
 		Ingredient.cpp
 
 OBJ	=	$(SRC:.cpp=.o)

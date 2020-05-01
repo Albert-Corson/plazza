@@ -20,10 +20,7 @@ class ResourceLock : private std::recursive_mutex {
             : _resource(std::move(data))
         {
         }
-        ResourceLock()
-            : ResourceLock(T())
-        {
-        }
+        ResourceLock() = default;
         ~ResourceLock() = default;
         ResourceLock(ResourceLock<T> &&other)
         {
