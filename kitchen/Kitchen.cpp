@@ -21,10 +21,10 @@ const std::unordered_map<std::string_view, Kitchen::commandInfo_t> Kitchen::__co
         { &Kitchen::_cmdNewRecipe, 4, 0, "<name> <cook_time_ms> [<ingredient> <amount>]...: Add a pizza recipe to the menu." }
     },
     { "ORDER",
-        { &Kitchen::_cmdOrder, 2, 2, "<name>: Start cooking a pizza." }
+        { &Kitchen::_cmdOrder, 3, 3, "<name> <size>: Start cooking a pizza." }
     },
     { "STATUS",
-        { &Kitchen::_cmdStatus, 1, 1, "[<any>]: Get the status of the kitchen. If <any> is present, data will be serialized." }
+        { &Kitchen::_cmdStatus, 1, 2, "[<any>]: Get the status of the kitchen. If <any> is present, data will be serialized." }
     },
     { "STOP",
         { &Kitchen::_cmdStop, 1, 0, ": Close kitchen." }
@@ -101,12 +101,14 @@ Kitchen::commandPtr_t Kitchen::_validateCommand(const argv_t &argv)
 void Kitchen::_errorResponse(const std::string_view &message, const argv_t &failedCmd)
 {
     _IPC->send("KO", message);
-    if (failedCmd.size() == 0)
-        return;
-    std::cerr << "\t";
-    for (const auto &it : failedCmd)
-        std::cerr << it << " ";
-    std::cerr << std::endl;
+    #ifdef DEBUG
+        if (failedCmd.size() == 0)
+            return;
+        std::cerr << "\t";
+        for (const auto &it : failedCmd)
+            std::cerr << it << " ";
+        std::cerr << std::endl;
+    #endif
 }
 
 void Kitchen::_successResponse(const std::string &message)
@@ -121,7 +123,9 @@ void Kitchen::_startManager()
 
         while (_running) {
             if (timer != nullptr && timer->getElapsedMillisecond() >= __timeout) {
-                _errorResponse("kitchen closed for inactivity");
+                #ifdef DEBUG
+                    _errorResponse("kitchen closed for inactivity, press enter to leave...");
+                #endif
                 stop();
                 return;
             }
@@ -226,9 +230,19 @@ bool Kitchen::_cmdOrder(const argv_t &argv, std::string &responseMsg)
         responseMsg = "order queue already at maximum capacity (" + std::to_string(_maxOrderQueue) + ")";
         return (false);
     }
+    int size = 0;
+    responseMsg = "invalid pizza size";
+    try {
+        size = std::stoi(argv[2]);
+    } catch (...) {
+        return (false);
+    }
+    if (size < int(pizzaSize_t::S) || size > int(pizzaSize_t::XXL))
+        return (false);
     for (const auto &it : _recipe) {
         if (it.getName() == argv[1]) {
-            _orderQueue->addOrder(it);
+            _orderQueue->addOrder(it, pizzaSize_t(size));
+            responseMsg.clear();
             return (true);
         }
     }
@@ -248,7 +262,7 @@ bool Kitchen::_cmdStatus(const argv_t &argv, std::string &responseMsg)
     }
     for (const auto &it : _orderQueue->getQueue()) {
         if (it.getStatus() != Pizza::COOKED)
-            status.orderQueue.emplace_back(it.getName(), it.getStatus());
+            status.orderQueue.emplace_back(it.getName(), it.getSize(), it.getStatus());
     }
     if (argv.size() > 1) {
         responseMsg = status.serialize();

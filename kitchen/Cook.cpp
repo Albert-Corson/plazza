@@ -55,7 +55,7 @@ void Cook::_cookNext()
         std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<size_t>(realtime)));
 
         pizza.setStatus(Pizza::COOKED);
-        _logOut->log(pizza.getName());
+        _logOut->log(pizza.getName() + " " + pizzaSizeStr.at(pizza.getSize()));
         _cooking = false;
     } catch (const Exception &) {
         _running = false;

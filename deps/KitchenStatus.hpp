@@ -8,8 +8,10 @@
 #pragma once
 
 #include <regex>
+#include <tuple>
 
 #include "Exception.hpp"
+#include "pizzaSize.hpp"
 
 struct KitchenStatus {
     class Exception : public ::Exception {
@@ -24,10 +26,10 @@ struct KitchenStatus {
     size_t activeCooks = 0;
     size_t totalCooks = 0;
     size_t orderQueueCapacity = 0;
-    std::vector<std::pair<std::string, bool>> orderQueue;
+    std::vector<std::tuple<std::string, pizzaSize_t, bool>> orderQueue;
 
     // returns a string buffer containing the kitchen infos in the following format:
-    // <activeCooks> <totalCooks> <orderQueueCapacity>[:<pizza> <status>]...
+    // <activeCooks> <totalCooks> <orderQueueCapacity>[:<pizza> <size> <status>]...
     const std::string &serialize() const noexcept
     {
         static std::string buffer;
@@ -40,9 +42,11 @@ struct KitchenStatus {
         buffer += std::to_string(orderQueueCapacity);
         for (const auto &it : orderQueue) {
             buffer += ':';
-            buffer += it.first;
+            buffer += std::get<0>(it);
             buffer += ' ';
-            buffer += std::to_string(it.second);
+            buffer += pizzaSizeStr.at(std::get<1>(it));
+            buffer += ' ';
+            buffer += std::to_string(std::get<2>(it));
         }
         return (buffer);
     }
@@ -60,13 +64,13 @@ struct KitchenStatus {
             totalCooks = std::stoul(matches.str(2));
             orderQueueCapacity = std::stoul(matches.str(3));
 
-            format = "^ *([A-z0-9_-]+) +([01])";
+            format = "^ *([A-z0-9_-]+) +([0-5]) +([01])";
             std::string buffer = line;
             for (size_t pos = buffer.find(':'); pos != std::string::npos; pos = buffer.find(':')) {
                 buffer = buffer.substr(pos);
                 if (!std::regex_search(buffer, matches, format))
                     throw Exception("deserialize: invalid format");
-                orderQueue.emplace_back(matches.str(1), std::stoi(matches.str(2)));
+                orderQueue.emplace_back(matches.str(1), pizzaSize_t(std::stoi(matches.str(2))), std::stoi(matches.str(3)));
             }
         } catch (...) {
             throw Exception("deserialize: invalid format");
@@ -79,14 +83,14 @@ struct KitchenStatus {
         size_t ongoing = 0;
 
         for (const auto &it : orderQueue) {
-            if (it.second)
+            if (std::get<2>(it))
                 ++ongoing;
         }
         output << "Cooks: " << totalCooks << " (" << activeCooks << " working)" << std::endl
                << "Orders: " << ongoing << "/" << orderQueue.size() << " ongoing (queue capacity: " << orderQueueCapacity << ")" << std::endl;
         for (const auto &it : orderQueue) {
-            output << "\t" << it.first << ": ";
-            if (it.second)
+            output << "\t" << std::get<0>(it) << " " << pizzaSizeStr.at(std::get<1>(it)) << ": ";
+            if (std::get<2>(it))
                 output << "ongoing";
             else
                 output << "awaiting";

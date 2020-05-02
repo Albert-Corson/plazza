@@ -45,10 +45,11 @@ Pizza &OrderQueue::waitForOrder()
     throw OrderQueue::Exception("waitForOrder: queue closed");
 }
 
-void OrderQueue::addOrder(const Pizza &pizza)
+void OrderQueue::addOrder(const Pizza &pizza, pizzaSize_t size)
 {
-    _queue.apply([&pizza](auto &queue) {
-        queue.emplace_back(pizza);
+    _queue.apply([&pizza, &size](auto &queue) {
+        queue.push_back(pizza);
+        queue.back().setSize(size);
     });
     _queue.notify_all();
 }

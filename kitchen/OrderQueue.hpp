@@ -21,7 +21,7 @@ class OrderQueue {
         ~OrderQueue();
 
         Pizza &waitForOrder();
-        void addOrder(const Pizza &pizza);
+        void addOrder(const Pizza &pizza, pizzaSize_t size);
         size_t getSize() const noexcept;
         const std::list<Pizza> &getQueue() const noexcept;
         void removeCookedPizzas();

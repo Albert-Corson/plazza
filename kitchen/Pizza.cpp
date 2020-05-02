@@ -9,8 +9,9 @@
 
 #include "Pizza.hpp"
 
-Pizza::Pizza(const std::string_view &name, millisec_t cookTime)
+Pizza::Pizza(const std::string_view &name, millisec_t cookTime, pizzaSize_t size)
     : _name(name.data())
+    , _size(size)
     , _cookTime(cookTime)
     , _status(IDLE)
 {
@@ -44,9 +45,19 @@ Pizza::status_t Pizza::getStatus() const noexcept
     return (_status);
 }
 
+pizzaSize_t Pizza::getSize() const noexcept
+{
+    return (_size);
+}
+
 void Pizza::setStatus(Pizza::status_t status) noexcept
 {
     _status = status;
+}
+
+void Pizza::setSize(pizzaSize_t size) noexcept
+{
+    _size = size;
 }
 
 void Pizza::addIngredientToRecipe(Ingredient &&ingredient)
