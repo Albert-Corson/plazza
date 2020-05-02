@@ -12,7 +12,7 @@
 
 #include "deps/Clock.hpp"
 #include "deps/pizzaSize.hpp"
-#include "Ingredient.hpp"
+#include "../Ingredient/Ingredient.hpp"
 
 class Pizza {
     public:

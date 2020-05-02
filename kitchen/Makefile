@@ -9,12 +9,12 @@ CC	=	g++
 
 SRC	=	main.cpp					\
 		Kitchen.cpp					\
-		Cook.cpp					\
-		OrderQueue.cpp				\
-		Pizza.cpp					\
-		Fridge.cpp					\
-		Log.cpp						\
-		Ingredient.cpp
+		Cook/Cook.cpp				\
+		OrderQueue/OrderQueue.cpp	\
+		Pizza/Pizza.cpp				\
+		Fridge/Fridge.cpp			\
+		Log/Log.cpp					\
+		Ingredient/Ingredient.cpp
 
 OBJ	=	$(SRC:.cpp=.o)
 

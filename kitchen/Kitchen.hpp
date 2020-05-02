@@ -13,11 +13,11 @@
 #include "deps/IPC/IPCProtocol.hpp"
 #include "deps/Exception.hpp"
 #include "deps/Clock.hpp"
-#include "Pizza.hpp"
-#include "Fridge.hpp"
-#include "Cook.hpp"
-#include "OrderQueue.hpp"
-#include "Log.hpp"
+#include "Pizza/Pizza.hpp"
+#include "Fridge/Fridge.hpp"
+#include "Cook/Cook.hpp"
+#include "OrderQueue/OrderQueue.hpp"
+#include "Log/Log.hpp"
 
 class Kitchen {
     public:

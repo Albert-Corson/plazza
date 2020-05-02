@@ -12,7 +12,7 @@
 #include "deps/Clock.hpp"
 #include "deps/ResourceLock.hpp"
 #include "deps/Thread.hpp"
-#include "Ingredient.hpp"
+#include "../Ingredient/Ingredient.hpp"
 
 class Fridge {
     public:

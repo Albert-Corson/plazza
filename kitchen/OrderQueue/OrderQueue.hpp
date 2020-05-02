@@ -11,7 +11,7 @@
 
 #include "deps/ResourceLock.hpp"
 #include "deps/Exception.hpp"
-#include "Pizza.hpp"
+#include "../Pizza/Pizza.hpp"
 
 class OrderQueue {
     public:
