@@ -37,7 +37,7 @@ int main(int argc, char const *argv[])
     for (int i = 0; i < argc; ++i) {
         if (!strcasecmp("-h", argv[i]) || !strcasecmp("--help", argv[i])) {
             help(argv[0]);
-            return (0);
+            return (1);
         }
     }
     std::unique_ptr<IPCProtocol> ipc = initIPC(argc, argv);

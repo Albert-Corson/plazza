@@ -23,14 +23,31 @@ class IPCProtocol
         : _comm{ std::make_shared<IOStream>() }
     {
     }
-    ~IPCProtocol()
+    IPCProtocol(const std::shared_ptr<IIPC> &ipc)
+        : _comm{ ipc }
     {
+    }
+    IPCProtocol(const IPCProtocol &other)
+        : _comm{ other._comm }
+    {
+    }
+    ~IPCProtocol() = default;
+
+    IPCProtocol &operator=(const IPCProtocol &other)
+    {
+        _comm = other._comm;
+        return (*this);
     }
 
     int connect(const std::shared_ptr<IIPC> &ipc)
     {
         _comm = ipc;
         return (this->good());
+    }
+
+    void close()
+    {
+        _comm.reset();
     }
 
     bool receive(std::vector<std::string> &buffer) const
@@ -56,7 +73,7 @@ class IPCProtocol
 
         stream << command;
         (void)(int[]){ 0, (stream << " " << args, 0)... };
-        stream << '\n';
+        stream << "\n";
         _comm->send(stream.str().c_str(), static_cast<std::streamsize>(stream.str().length()));
     }
 

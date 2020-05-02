@@ -9,6 +9,9 @@
 #include "deps/Exception.hpp"
 #include "deps/IPC/NamedPipe.hpp"
 #include "deps/IPC/IPCProtocol.hpp"
+#include "KitchenSpawner/process/KitchenProcessSpawner.hpp"
+#include "KitchenManager/KitchenManager.hpp"
+#include "deps/pizzaSize.hpp"
 
 static void help(const char *binName)
 {
@@ -24,14 +27,24 @@ int main(int argc, char const *argv[])
         help(argv[0]);
         return (84);
     }
+    float multiplier = std::stof(argv[1]);
+    int cooks = std::stod(argv[2]);
+    int interval = std::stod(argv[3]);
 
-    IPCProtocol comm;
-    std::shared_ptr<NamedPipe> pipe = std::make_shared<NamedPipe>("test.fifo");
+    KitchenManager manager(multiplier, cooks, interval);
+    manager.bindSpawner(std::make_shared<KitchenProcessSpawner>());
 
-    pipe->make();
-    comm.connect(pipe);
-    comm.send("INIT", argv[1], argv[2], argv[3]);
-    comm.send("STOP");
-    pipe->remove();
+    std::string command;
+    std::vector<std::string> args;
+    while (std::cin >> command) {
+        if (command == "dump") {
+            manager.dump();
+        } else {
+            auto &kitchen = manager.queryKitchen();
+            auto &ipc = kitchen.getIPC();
+            ipc.send("ORDER pizza2 " + std::to_string((int)pizzaSize_t::XXL));
+            ipc.receive(args);
+        }
+    }
     return (0);
 }

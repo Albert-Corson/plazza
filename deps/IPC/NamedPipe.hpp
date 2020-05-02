@@ -16,23 +16,22 @@
 #include <unistd.h>
 #include "deps/IPC/IIPC.hpp"
 
+#include <iostream>
+
 // Inter-process communication through named pipes
 class NamedPipe : public IIPC
 {
   public:
-    NamedPipe()
-        : _path{ nullptr }
-    {
-    }
+    NamedPipe() = default;
     // prepare inter-process communication
     NamedPipe(const std::string &path)
-        : _path{ std::make_unique<std::string>(path) }
     {
+        this->open(path);
     }
     // copy pipe
     NamedPipe(const NamedPipe &other)
-        : _path{ std::make_unique<std::string>(*other._path) }
     {
+        this->open(*other._path);
     }
     ~NamedPipe() override
     {
@@ -40,6 +39,8 @@ class NamedPipe : public IIPC
             _in.close();
         if (_out.is_open())
             _out.close();
+        if (this->good())
+            this->remove();
     }
 
     // copy pipe
@@ -88,9 +89,22 @@ class NamedPipe : public IIPC
     // set the FIFO path and check for r/w access
     bool open(const std::string &path)
     {
+        bool is_ok = false;
+
         _path = std::make_unique<std::string>(path);
-        return (this->good());
+        is_ok = this->good();
+        if (!is_ok) {
+            this->make();
+            is_ok = this->good();
+        }
+        return (is_ok);
     }
+
+  private:
+    std::unique_ptr<std::string> _path{ nullptr };
+    std::ofstream _out;
+    std::ifstream _in;
+
     // create a FIFO file
     bool make(void) const
     {
@@ -101,9 +115,4 @@ class NamedPipe : public IIPC
     {
         return (::remove(_path->c_str()) == 0);
     }
-
-  private:
-    std::unique_ptr<std::string> _path;
-    std::ofstream _out;
-    std::ifstream _in;
 };

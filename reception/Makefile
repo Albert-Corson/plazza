@@ -7,7 +7,11 @@
 
 CC	=	g++
 
-SRC	=	main.cpp
+SRC	=	main.cpp											\
+		KitchenSpawner/process/KitchenProcessSpawner.cpp	\
+		KitchenSpawner/process/KitchenProcessLink.cpp		\
+		KitchenSpawner/AKitchenLink.cpp						\
+		KitchenManager/KitchenManager.cpp
 
 OBJ	=	$(SRC:.cpp=.o)
 

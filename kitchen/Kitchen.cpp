@@ -45,7 +45,7 @@ Kitchen::Kitchen(std::unique_ptr<IPCProtocol> &IPC, const std::string_view &logF
 
 Kitchen::~Kitchen()
 {
-    _IPC = nullptr;
+    _IPC->close();
     stop();
     _manager.join();
 }
@@ -123,9 +123,7 @@ void Kitchen::_startManager()
 
         while (_running) {
             if (timer != nullptr && timer->getElapsedMillisecond() >= __timeout) {
-                #ifdef DEBUG
-                    _errorResponse("kitchen closed for inactivity, press enter to leave...");
-                #endif
+                _errorResponse("kitchen closed for inactivity, press enter to leave...");
                 stop();
                 return;
             }
