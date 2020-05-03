@@ -14,6 +14,13 @@ KitchenManager::KitchenManager(float multiplier, int cooks, int interval)
 {
 }
 
+KitchenManager::~KitchenManager()
+{
+    for (auto &kitchen : _kitchens) {
+        kitchen->stop();
+    }
+}
+
 void KitchenManager::bindSpawner(std::shared_ptr<IKitchenSpawner> spawner)
 {
     _spawners.emplace_back(spawner);

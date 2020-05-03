@@ -12,23 +12,17 @@ const millisec_t Kitchen::__timeout = 5000;
 
 const std::unordered_map<std::string_view, Kitchen::commandInfo_t> Kitchen::__commands = {
     { "HELP",
-        { &Kitchen::_cmdHelp, 1, 0, ": show this on stderr only." }
-    },
+      { &Kitchen::_cmdHelp, 1, 0, ": show this on stderr only." } },
     { "START",
-        { &Kitchen::_cmdStart, 4, 4, "<multiplier> <cooks> <refill_rate_ms>: Initialize a kitchen." }
-    },
+      { &Kitchen::_cmdStart, 4, 4, "<multiplier> <cooks> <refill_rate_ms>: Initialize a kitchen." } },
     { "NEW_RECIPE",
-        { &Kitchen::_cmdNewRecipe, 4, 0, "<name> <cook_time_ms> [<ingredient> <amount>]...: Add a pizza recipe to the menu." }
-    },
+      { &Kitchen::_cmdNewRecipe, 4, 0, "<name> <cook_time_ms> [<ingredient> <amount>]...: Add a pizza recipe to the menu." } },
     { "ORDER",
-        { &Kitchen::_cmdOrder, 3, 3, "<name> <size>: Start cooking a pizza." }
-    },
+      { &Kitchen::_cmdOrder, 3, 3, "<name> <size>: Start cooking a pizza." } },
     { "STATUS",
-        { &Kitchen::_cmdStatus, 1, 2, "[<any>]: Get the status of the kitchen. If <any> is present, data will be serialized." }
-    },
+      { &Kitchen::_cmdStatus, 1, 2, "[<any>]: Get the status of the kitchen. If <any> is present, data will be serialized." } },
     { "STOP",
-        { &Kitchen::_cmdStop, 1, 0, ": Close kitchen." }
-    }
+      { &Kitchen::_cmdStop, 1, 0, ": Close kitchen." } }
 };
 
 Kitchen::Kitchen(std::unique_ptr<IPCProtocol> &IPC, const std::string_view &logFile)
@@ -101,14 +95,14 @@ Kitchen::commandPtr_t Kitchen::_validateCommand(const argv_t &argv)
 void Kitchen::_errorResponse(const std::string_view &message, const argv_t &failedCmd)
 {
     _IPC->send("KO", message);
-    #ifdef DEBUG
-        if (failedCmd.size() == 0)
-            return;
-        std::cerr << "\t";
-        for (const auto &it : failedCmd)
-            std::cerr << it << " ";
-        std::cerr << std::endl;
-    #endif
+#ifdef DEBUG
+    if (failedCmd.size() == 0)
+        return;
+    std::cerr << "\t";
+    for (const auto &it : failedCmd)
+        std::cerr << it << " ";
+    std::cerr << std::endl;
+#endif
 }
 
 void Kitchen::_successResponse(const std::string &message)
@@ -137,7 +131,6 @@ void Kitchen::_startManager()
                 timer = nullptr;
             else if (timer == nullptr)
                 timer = std::make_unique<Clock>();
-
         }
     });
 }
@@ -263,7 +256,7 @@ bool Kitchen::_cmdStatus(const argv_t &argv, std::string &responseMsg)
             status.orderQueue.emplace_back(it.getName(), it.getSize(), it.getStatus());
     }
     if (argv.size() > 1) {
-        responseMsg = status.serialize();
+        responseMsg << status;
     } else {
         status.dump(std::cout);
     }

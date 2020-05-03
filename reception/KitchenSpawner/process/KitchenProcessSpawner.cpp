@@ -5,9 +5,21 @@
 ** KitchenProcessSpawner
 */
 
+#include <signal.h>
 #include "KitchenProcessSpawner.hpp"
 #include "KitchenProcessLink.hpp"
 #include "deps/IPC/NamedPipe.hpp"
+
+static struct sigaction oldhandler;
+
+static void sig()
+{
+    struct sigaction newhandler;
+    newhandler.sa_handler = SIG_IGN;
+    sigemptyset(&newhandler.sa_mask);
+    newhandler.sa_flags = 0;
+    sigaction(SIGCHLD, &newhandler, NULL);
+}
 
 static inline const std::string locateKitchenBin()
 {
@@ -25,7 +37,7 @@ std::shared_ptr<IKitchenLink> KitchenProcessSpawner::spawn(float multiplier, int
     std::shared_ptr<KitchenProcessLink> link = std::make_unique<KitchenProcessLink>();
     std::shared_ptr<NamedPipe> pipe = std::make_shared<NamedPipe>(name);
     link->getIPC().connect(pipe);
-
+    sig();
     const std::string &kitchenBin = locateKitchenBin();
     pid_t pid = link->getProcess().exec(kitchenBin.c_str(), name.c_str(), NULL);
     if (pid == -1)

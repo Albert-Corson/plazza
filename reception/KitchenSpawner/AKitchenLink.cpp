@@ -8,7 +8,8 @@
 #include <memory>
 #include <vector>
 #include <string>
-#include "AKitchenLink.hpp"
+#include "deps/KitchenStatus.hpp"
+#include "KitchenSpawner/AKitchenLink.hpp"
 
 bool AKitchenLink::start(float multiplier, int cooks, int interval)
 {
@@ -34,7 +35,7 @@ bool AKitchenLink::start(float multiplier, int cooks, int interval)
     return (true);
 }
 
-void AKitchenLink::stop()
+void AKitchenLink::stop() const
 {
     if (this->isAlive()) {
         std::vector<std::string> args;
@@ -43,8 +44,7 @@ void AKitchenLink::stop()
         if (!_ipc.receive(args) || args[0] != "OK") {
             std::cerr << "Failed to stop kitchen." << std::endl;
         }
-    } else {
-        std::cerr << "Kitchen closed unexpectedly." << std::endl;
+        this->waitstop();
     }
 }
 
@@ -52,15 +52,14 @@ bool AKitchenLink::isAvailable() const
 {
     if (!this->isAlive())
         return (false);
-
+    KitchenStatus status;
     std::vector<std::string> args;
     _ipc.send("STATUS serialized");
     if (!_ipc.receive(args) || args[0] != "OK")
         return (false);
-    int cooksBusy = std::stoi(args[1]);
-    int cooksTotal = std::stoi(args[2]);
-    // int queueMax = std::stoi(args[3]);
-    if (cooksBusy < cooksTotal)
+    args.erase(args.begin());
+    args >> status;
+    if (status.orderQueue.size() < status.orderQueueCapacity)
         return (true);
     return (false);
 }

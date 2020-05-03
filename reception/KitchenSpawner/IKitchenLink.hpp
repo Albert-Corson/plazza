@@ -15,7 +15,8 @@ class IKitchenLink
     virtual ~IKitchenLink() = default;
 
     virtual bool start(float multiplier, int cooks, int interval) = 0;
-    virtual void stop() = 0;
+    virtual void waitstop() const = 0;
+    virtual void stop() const = 0;
     virtual bool isAlive() const = 0;
     virtual bool isAvailable() const = 0;
 

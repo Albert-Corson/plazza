@@ -26,24 +26,10 @@ class KitchenManager
     };
 
     KitchenManager(float multiplier, int cooks, int interval);
-    ~KitchenManager() = default;
+    ~KitchenManager();
 
     void bindSpawner(std::shared_ptr<IKitchenSpawner> spawner);
     IKitchenLink &queryKitchen();
-
-    void dump()
-    {
-        std::cout << "Spawners: " << _spawners.size() << std::endl;
-        for (auto it = _kitchens.begin(); it != _kitchens.end();) {
-            if (!(*it)->isAlive()) {
-                it = _kitchens.erase(it);
-            } else {
-                (*it)->isAvailable();
-                ++it;
-            }
-        }
-        std::cout << "Kitchens: " << _kitchens.size() << std::endl;
-    }
 
   private:
     float _multiplier;

@@ -65,10 +65,7 @@ class Process
     bool isAlive() const
     {
         errno = 0;
-        int status = 0;
-        if (_pid == -1)
-            return (false);
-        if (waitpid(_pid, &status, WNOHANG) == -1 || kill(_pid, 0) == -1)
+        if (_pid == -1 || kill(_pid, 0) == -1)
             return (false);
         return (errno == 0);
     }

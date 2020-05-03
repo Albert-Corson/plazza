@@ -17,7 +17,8 @@ class AKitchenLink : public IKitchenLink
     virtual ~AKitchenLink() override = default;
 
     bool start(float multiplier, int cooks, int interval) override final;
-    void stop() override final;
+    virtual void waitstop() const override{};
+    void stop() const override final;
     virtual bool isAlive() const = 0;
     bool isAvailable() const override final;
 

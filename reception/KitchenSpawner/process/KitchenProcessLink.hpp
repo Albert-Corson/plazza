@@ -18,6 +18,7 @@ class KitchenProcessLink : public AKitchenLink
     KitchenProcessLink() = default;
     ~KitchenProcessLink() override final = default;
 
+    void waitstop() const override final;
     bool isAlive() const override final;
     Process &getProcess();
 

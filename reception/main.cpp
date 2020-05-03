@@ -37,14 +37,10 @@ int main(int argc, char const *argv[])
     std::string command;
     std::vector<std::string> args;
     while (std::cin >> command) {
-        if (command == "dump") {
-            manager.dump();
-        } else {
-            auto &kitchen = manager.queryKitchen();
-            auto &ipc = kitchen.getIPC();
-            ipc.send("ORDER pizza2 " + std::to_string((int)pizzaSize_t::XXL));
-            ipc.receive(args);
-        }
+        auto &kitchen = manager.queryKitchen();
+        auto &ipc = kitchen.getIPC();
+        ipc.send("ORDER pizza2 4");
+        ipc.receive(args);
     }
     return (0);
 }
