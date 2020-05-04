@@ -11,6 +11,7 @@ SRC	=	main.cpp			\
 		main_reception.cpp	\
 		load_args.cpp		\
 		parse_pizza.cpp		\
+		load_config.cpp		\
 
 OBJ	=	$(addprefix src/, $(SRC:.cpp=.o))
 
