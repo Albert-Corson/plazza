@@ -15,7 +15,7 @@ override COMMON_CXXFLAGS	+=	-std=c++17				\
 								-Wno-unused-parameter	\
 								-Wno-unused-variable	\
 
-MAKE	=	@make --no-print-directory
+MAKE	=	@make --no-print-directory --jobs=4
 
 RECEPTION	=	$(MAKE) -C ./reception
 
@@ -44,6 +44,6 @@ tests_run: all
 	$(KITCHEN) tests_run
 
 debug:
-	make all COMMON_CXXFLAGS="$(DEBUG)"
+	$(MAKE) all COMMON_CXXFLAGS="$(DEBUG)"
 
 .PHONY: all clean fclean re tests_run debug reception kitchen
