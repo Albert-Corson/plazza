@@ -18,8 +18,12 @@ struct KitchenStatus {
     size_t orderQueueCapacity = 0;
     std::vector<std::tuple<std::string, pizzaSize_t, bool>> orderQueue;
 
-    // returns a string buffer containing the kitchen infos in the following format:
-    // <activeCooks> <totalCooks> <orderQueueCapacity> [<pizza> <size> <status>]...
+    /**
+     * @brief returns a string buffer containing the kitchen infos in the following format:
+     * <activeCooks> <totalCooks> <orderQueueCapacity> [<pizza> <size> <status>]...
+     * 
+     * @return const std::string& 
+    **/
     const std::string &serialize() const noexcept
     {
         static std::string buffer;
@@ -41,7 +45,12 @@ struct KitchenStatus {
         return (buffer);
     }
 
-    // parses a string buffer formatted the way of `dump()`'s output
+    /**
+     * @brief parses a string buffer formatted the way of `dump()`'s output
+     * 
+     * @param line the string to deserialized
+     * @return bool true on success, false on error
+    **/
     bool deserialize(const std::string &line)
     {
         std::regex format("^ *([0-9]+) +([0-9]+) +([0-9]+) *");
@@ -68,8 +77,14 @@ struct KitchenStatus {
         return (true);
     }
 
-    // parses a string vector formatted the way of `dump()`'s output
-    // ie: {<activeCooks>, <totalCooks>, <orderQueueCapacity>, [<pizza>, <size>, <status>,]...}
+    /**
+     * @brief parses a string vector formatted the way of `dump()`'s output
+     * ie: {<activeCooks>, <totalCooks>, <orderQueueCapacity>, [<pizza>, <size>, <status>,]...}
+     * 
+     * @param words a string vector formatted the way of `dump()`'s output
+     * @param offset where to start the parsing from
+     * @return bool true on success, false on error
+    **/
     bool deserialize(const std::vector<std::string> &words, size_t offset = 0)
     {
         try {
@@ -87,7 +102,11 @@ struct KitchenStatus {
         return (true);
     }
 
-    // dumps infos in a human-readable format
+    /**
+     * @brief dumps infos in a human-readable format
+     * 
+     * @param output the ostream to dump the info to
+    **/
     void dump(std::ostream &output) const noexcept
     {
         size_t ongoing = 0;

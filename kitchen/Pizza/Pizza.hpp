@@ -22,17 +22,57 @@ class Pizza {
             COOKED = 2,
         };
 
+        /**
+         * @brief Construct a new Pizza object
+         * 
+         * @param name name of the pizza
+         * @param cookTime its cooking time
+         * @param size its size, undefined by default
+        **/
         Pizza(const std::string_view &name, millisec_t cookTime, pizzaSize_t size = pizzaSize_t::UNDEF);
         Pizza(const Pizza &other);
 
-        const std::string &getName() const noexcept;
-        millisec_t getCookTime() const noexcept;
-        const std::vector<Ingredient> &getRecipe() const noexcept;
-        status_t getStatus() const noexcept;
-        pizzaSize_t getSize() const noexcept;
-        void setStatus(status_t status) noexcept;
-        void setSize(pizzaSize_t size) noexcept;
+        /**
+         * @brief add an `ingredient` to the recipe of the pizza
+        **/
         void addIngredientToRecipe(Ingredient &&ingredient);
+
+        /**
+         * @brief Get the name of the pizza
+        **/
+        const std::string &getName() const noexcept;
+
+        /**
+         * @brief Get the cooking time of the pizza in milliseconds
+        **/
+        millisec_t getCookTime() const noexcept;
+
+        /**
+         * @brief Get the ingredients needed to make this pizza
+         * 
+         * @return const std::vector<Ingredient> &
+        **/
+        const std::vector<Ingredient> &getRecipe() const noexcept;
+
+        /**
+         * @brief Get the status of the pizza
+        **/
+        status_t getStatus() const noexcept;
+
+        /**
+         * @brief Get the size of the pizza
+        **/
+        pizzaSize_t getSize() const noexcept;
+
+        /**
+         * @brief Set status of the pizza
+        **/
+        void setStatus(status_t status) noexcept;
+
+        /**
+         * @brief Set the size of the pizza
+        **/
+        void setSize(pizzaSize_t size) noexcept;
 
     private:
         const std::string _name;

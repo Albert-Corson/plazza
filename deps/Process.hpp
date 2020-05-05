@@ -34,6 +34,11 @@ class Process
     Process() = default;
     ~Process() = default;
 
+    /**
+     * @brief Execute `path` into a fork with all arguments after it until a NULL pointer.
+     * 
+     * @return pid_t the child process pid
+    **/
     template<typename... Args>
     pid_t exec(const char *path, Args &&... args)
     {
@@ -44,11 +49,21 @@ class Process
         }
         return (_pid);
     }
+    /**
+     * @brief forks the process
+     * 
+     * @return pid_t the child pid
+    **/
     pid_t fork()
     {
         _pid = ::fork();
         return (_pid);
     }
+    /**
+     * @brief wait for the child process to finish
+     * 
+     * @return int the exit status of the child
+    **/
     int join() const
     {
         int status = 0;
@@ -62,6 +77,11 @@ class Process
         }
         return (status);
     }
+    /**
+     * @brief checks if the child process is still running
+     * 
+     * @return bool
+    **/
     bool isAlive() const
     {
         errno = 0;
@@ -69,6 +89,11 @@ class Process
             return (false);
         return (errno == 0);
     }
+    /**
+     * @brief get the pid of the child
+     * 
+     * @return pid_t
+    **/
     pid_t getPid() const
     {
         return (_pid);

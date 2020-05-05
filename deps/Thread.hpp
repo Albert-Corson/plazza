@@ -86,6 +86,13 @@ class Thread {
         {
         }
 
+        /**
+         * @brief Construct a new Thread object
+         * Starts a new thread and calls `task`
+         * 
+         * @param task the threaded task to execute
+         * @param args the arguments to pass to `task`
+        **/
         template <typename Function, typename ...Args>
         explicit Thread(Function &&task, Args &&...args)
         {
@@ -106,12 +113,21 @@ class Thread {
             return (*this);
         }
 
+        /**
+         * @brief Destroy the Thread object, throws a Thread::Exception is the thread is still joinable
+        **/
         ~Thread() noexcept(false)
         {
             if (_joinable)
                 throw Exception("Thread left unjoined / attached");
         }
 
+        /**
+         * @brief Runs a task if none is running
+         * 
+         * @param task the threaded task to execute
+         * @param args the arguments to pass to `task`
+        **/
         template <typename Function, typename ...Args>
         void run(Function &&task, Args &&...args)
         {
@@ -126,21 +142,35 @@ class Thread {
                 throw Exception(strerror(errc));
         }
 
+        /**
+         * @brief Get this thread's ID
+         * 
+         * @return pthread_t
+        **/
         pthread_t get_id()
         {
             return (_id);
         }
 
+        /**
+         * @brief tells if the thread is joinable or not
+        **/
         bool joinable()
         {
             return (_joinable);
         }
 
+        /**
+         * @brief tells if the threaded task is still running
+        **/
         bool is_active()
         {
             return (_running);
         }
 
+        /**
+         * @brief waits for the end of the thread (and its task)
+        **/
         void join()
         {
             int errc = 0;
@@ -153,6 +183,9 @@ class Thread {
             _joinable = false;
         }
 
+        /**
+         * @brief lets the thread run freely
+        **/
         void detach()
         {
             if (!_joinable)

@@ -23,11 +23,19 @@ class Clock {
         }
         ~Clock() = default;
 
+        /**
+         * @brief Reset the internal time reference
+        **/
         void reset()
         {
             _start = std::chrono::steady_clock::now();
         }
 
+        /**
+         * @brief Get the elapsed time in milliseconds between the current time and the internal reference
+         * 
+         * @return millisec_t (a.k.a. long int)
+        **/
         millisec_t getElapsedMillisecond() const
         {
             const auto &end = std::chrono::steady_clock::now();

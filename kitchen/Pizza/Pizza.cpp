@@ -25,6 +25,19 @@ Pizza::Pizza(const Pizza &other)
 {
 }
 
+void Pizza::addIngredientToRecipe(Ingredient &&ingredient)
+{
+    auto exists = std::find_if(_recipe.begin(), _recipe.end(), [&ingredient](const auto &elem) {
+        return (ingredient.getName() == elem.getName());
+    });
+
+    if (exists != _recipe.cend()) {
+        *exists = std::move(ingredient);
+        return;
+    }
+    _recipe.emplace_back(std::move(ingredient));
+}
+
 const std::string &Pizza::getName() const noexcept
 {
     return (_name);
@@ -58,17 +71,4 @@ void Pizza::setStatus(Pizza::status_t status) noexcept
 void Pizza::setSize(pizzaSize_t size) noexcept
 {
     _size = size;
-}
-
-void Pizza::addIngredientToRecipe(Ingredient &&ingredient)
-{
-    auto exists = std::find_if(_recipe.begin(), _recipe.end(), [&ingredient](const auto &elem) {
-        return (ingredient.getName() == elem.getName());
-    });
-
-    if (exists != _recipe.cend()) {
-        *exists = std::move(ingredient);
-        return;
-    }
-    _recipe.emplace_back(std::move(ingredient));
 }

@@ -20,13 +20,47 @@ class OrderQueue {
         OrderQueue();
         ~OrderQueue();
 
+        /**
+         * @brief blocks the calling thread and waiting for the order queue have orders to take
+         * 
+         * @return Pizza & reference to the taken order
+         * @throw OrderQueue::Exception if the queue was stopped
+        **/
         Pizza &waitForOrder();
+
+        /**
+         * @brief add an order to the queue
+        **/
         void addOrder(const Pizza &pizza, pizzaSize_t size);
+
+        /**
+         * @brief get the size of the queue
+        **/
         size_t getSize() const noexcept;
+
+        /**
+         * @brief get a read-only reference to the queue
+        **/
         const std::list<Pizza> &getQueue() const noexcept;
+
+        /**
+         * @brief removed cooked pizza from the queue
+        **/
         void removeCookedPizzas();
+
+        /**
+         * @brief stop the queue
+        **/
         void close();
+
+        /**
+         * @brief waits for the queue to be available and locks it for modifications
+        **/
         void lock();
+
+        /**
+         * @brief unlocks the queue
+        **/
         void unlock();
 
     private:

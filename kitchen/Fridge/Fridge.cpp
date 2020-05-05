@@ -39,17 +39,20 @@ void Fridge::start(millisec_t restockRate)
 bool Fridge::tryRestock() noexcept
 {
     static millisec_t leftover = 0;
+
     if (!_running)
         return (false);
     millisec_t elapsed = leftover + _timer.getElapsedMillisecond();
+    size_t amount = 0;
 
     if (elapsed < _restockRate)
         return (false);
     _timer.reset();
     while (elapsed >= _restockRate) {
-        _restockOneOfEach();
+        ++amount;
         elapsed -= _restockRate;
     }
+    _restockEach(amount);
     leftover = elapsed;
     return (true);
 }
@@ -92,11 +95,11 @@ void Fridge::stop()
         it.notify_all();
 }
 
-void Fridge::_restockOneOfEach() noexcept
+void Fridge::_restockEach(size_t amount) noexcept
 {
     for (auto &it : _stock) {
-        it.apply([](Ingredient &curr) {
-            curr.add();
+        it.apply([&amount](Ingredient &curr) {
+            curr.add(amount);
         });
         it.notify_all();
     }
