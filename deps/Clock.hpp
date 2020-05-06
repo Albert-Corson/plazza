@@ -42,6 +42,16 @@ class Clock {
             return (std::chrono::duration_cast<std::chrono::milliseconds>(end - _start).count());
         }
 
+        static std::string getCurrentTime() noexcept
+        {
+            auto timePoint = std::chrono::system_clock::now();
+            std::time_t time = std::chrono::system_clock::to_time_t(timePoint);
+            std::string humanTime = std::ctime(&time);
+
+            humanTime = humanTime.substr(0, humanTime.size() - 1);
+            return (humanTime);
+        }
+
     private:
         std::chrono::_V2::steady_clock::time_point _start;
 };
