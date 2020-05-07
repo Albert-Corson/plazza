@@ -8,6 +8,7 @@
 #pragma once
 
 #include <chrono>
+#include <string>
 
 typedef long millisec_t;
 
