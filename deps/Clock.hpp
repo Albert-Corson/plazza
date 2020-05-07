@@ -8,6 +8,7 @@
 #pragma once
 
 #include <chrono>
+#include <string>
 
 typedef long millisec_t;
 
@@ -40,6 +41,16 @@ class Clock {
         {
             const auto &end = std::chrono::steady_clock::now();
             return (std::chrono::duration_cast<std::chrono::milliseconds>(end - _start).count());
+        }
+
+        static std::string getCurrentTime() noexcept
+        {
+            auto timePoint = std::chrono::system_clock::now();
+            std::time_t time = std::chrono::system_clock::to_time_t(timePoint);
+            std::string humanTime = std::ctime(&time);
+
+            humanTime = humanTime.substr(0, humanTime.size() - 1);
+            return (humanTime);
         }
 
     private:
