@@ -11,18 +11,22 @@ SRC	=	main.cpp											\
 		KitchenSpawner/process/KitchenProcessSpawner.cpp	\
 		KitchenSpawner/process/KitchenProcessLink.cpp		\
 		KitchenSpawner/AKitchenLink.cpp						\
-		KitchenManager/KitchenManager.cpp
+		KitchenManager/KitchenManager.cpp					\
+		Reception.cpp										\
+		ParsePizzas.cpp										\
+		LoadConfigs/LoadArgs.cpp							\
+		LoadConfigs/LoadConfig.cpp							\
 
 OBJ	=	$(SRC:.cpp=.o)
 
 CXXFLAGS	=	$(COMMON_CXXFLAGS)	\
 				-I./				\
-				-I../
+				-I../				\
 
 NAME	=	../plazza
 
 $(NAME): $(OBJ)
-	$(CC) -o $(NAME) $(OBJ)
+	$(CC) -o $(NAME) $(OBJ) $(CXXFLAGS)
 
 all: $(NAME)
 
