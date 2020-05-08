@@ -9,7 +9,8 @@ on:
 jobs:
   build:
     name: Build Checker
-    runs-on: epitechcontent/epitest-docker
+    runs-on: ubuntu-latest
+    container: epitechcontent/epitest-docker:latest
 
     steps:
       - uses: actions/checkout@v2
@@ -19,7 +20,8 @@ jobs:
 
   tests:
     name: Test Runner
-    runs-on: epitechcontent/epitest-docker
+    runs-on: ubuntu-latest
+    container: epitechcontent/epitest-docker:latest
     steps:
       - uses: actions/checkout@v2
 
@@ -30,7 +32,8 @@ jobs:
   deploy:
     name: Deploy
     needs: [build, tests]
-    runs-on: [epitechcontent/epitest-docker]
+    runs-on: [ubuntu-latest]
+    container: epitechcontent/epitest-docker:latest
     steps:
       - name: Set up ssh key
         uses: webfactory/ssh-agent@v0.2.0
