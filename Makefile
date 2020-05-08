@@ -36,6 +36,7 @@ clean:
 fclean: clean
 	$(RECEPTION) fclean
 	$(KITCHEN) fclean
+	$(RM) ./fifo*
 
 re: fclean all
 

@@ -48,20 +48,23 @@ void AKitchenLink::stop() const
     }
 }
 
-bool AKitchenLink::isAvailable() const
+unsigned int AKitchenLink::getAvailability() const
 {
     if (!this->isAlive())
         return (false);
-    KitchenStatus status;
     std::vector<std::string> args;
+    KitchenStatus status;
     _ipc.send("STATUS serialized");
     if (!_ipc.receive(args) || args[0] != "OK")
         return (false);
     args.erase(args.begin());
     args >> status;
-    if (status.orderQueue.size() < status.orderQueueCapacity)
-        return (true);
-    return (false);
+    return (status.orderQueueCapacity - status.orderQueue.size());
+}
+
+bool AKitchenLink::isAvailable() const
+{
+    return (this->getAvailability() > 0);
 }
 
 IPCProtocol &AKitchenLink::getIPC()

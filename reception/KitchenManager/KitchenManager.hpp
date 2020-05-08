@@ -12,12 +12,35 @@
 #include "deps/Exception.hpp"
 #include "KitchenSpawner/IKitchenSpawner.hpp"
 
+struct SpawnerInfo {
+    SpawnerInfo(std::shared_ptr<IKitchenSpawner> kitchenSpawner)
+        : spawner{ kitchenSpawner }
+    {
+    }
+
+    std::shared_ptr<IKitchenSpawner> spawner;
+    unsigned int kitchensCount{ 0 };
+};
+
+struct KitchenInfo {
+    KitchenInfo(std::shared_ptr<IKitchenLink> kitchenLink, std::shared_ptr<SpawnerInfo> kitchenSpawner)
+        : link{ kitchenLink }
+        , availableSlots{ kitchenLink->getAvailability() }
+        , spawner{ kitchenSpawner }
+    {
+    }
+
+    std::shared_ptr<IKitchenLink> link;
+    unsigned int availableSlots;
+    std::weak_ptr<SpawnerInfo> spawner;
+};
+
 class KitchenManager
 {
-  public:
+public:
     class Exception : public ::Exception
     {
-      public:
+    public:
         Exception(const std::string &msg)
             : ::Exception("KitchenManager::Exception: " + msg)
         {
@@ -29,12 +52,22 @@ class KitchenManager
     ~KitchenManager();
 
     void bindSpawner(std::shared_ptr<IKitchenSpawner> spawner);
+    void unbindSpawner(std::shared_ptr<IKitchenSpawner> spawner);
+    void resetCache();
     IKitchenLink &queryKitchen();
 
-  private:
+private:
+    void clearKitchens();
+    int addKitchen(std::shared_ptr<SpawnerInfo> spawner);
+    std::vector<KitchenInfo>::iterator removeKitchen(std::vector<KitchenInfo>::iterator it);
+
+    int findBestSpawner() const;
+    int findBestKitchen() const;
+
     float _multiplier;
     int _cooks;
     int _interval;
-    std::vector<std::shared_ptr<IKitchenSpawner>> _spawners;
-    std::vector<std::shared_ptr<IKitchenLink>> _kitchens;
+
+    std::vector<std::shared_ptr<SpawnerInfo>> _spawners;
+    std::vector<KitchenInfo> _kitchens;
 };

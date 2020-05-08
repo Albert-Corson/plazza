@@ -13,18 +13,19 @@
 
 class AKitchenLink : public IKitchenLink
 {
-  public:
+public:
     virtual ~AKitchenLink() override = default;
 
     bool start(float multiplier, int cooks, int interval) override final;
     virtual void waitstop() const override{};
     void stop() const override final;
     virtual bool isAlive() const = 0;
+    unsigned int getAvailability() const override final;
     bool isAvailable() const override final;
 
     IPCProtocol &getIPC() override final;
     void setIPC(IPCProtocol &ipc) override final;
 
-  protected:
+protected:
     IPCProtocol _ipc;
 };
