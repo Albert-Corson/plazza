@@ -11,8 +11,7 @@ SRC	=	main.cpp					\
 		Kitchen.cpp					\
 		Cook/Cook.cpp				\
 		OrderQueue/OrderQueue.cpp	\
-		Fridge/Fridge.cpp			\
-		Log/Log.cpp
+		Fridge/Fridge.cpp
 
 OBJ	=	$(SRC:.cpp=.o)
 

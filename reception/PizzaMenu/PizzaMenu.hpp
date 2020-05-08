@@ -16,10 +16,20 @@ class PizzaMenu : public std::vector<Pizza> {
     public:
         class Exception;
 
+        /**
+         * @brief parses all 'X.conf' files located in `configsFolderPath`
+         * 
+         * @throw PizzaMenu::Exception in case of error
+        **/
         PizzaMenu(const std::string &configsFolderPath);
         PizzaMenu() = default;
         ~PizzaMenu() = default;
 
+        /**
+         * @brief parses all 'X.conf' files located in `folderPath`
+         * 
+         * @return bool error/success
+        **/
         bool loadConfigs(const std::string &folderPath);
 };
 

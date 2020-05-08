@@ -17,7 +17,7 @@
 #include "Fridge/Fridge.hpp"
 #include "Cook/Cook.hpp"
 #include "OrderQueue/OrderQueue.hpp"
-#include "Log/Log.hpp"
+#include "deps/OLogStream.hpp"
 
 class Kitchen {
     public:
@@ -60,7 +60,7 @@ class Kitchen {
         std::unique_ptr<IPCProtocol> _IPC;
 
         Thread _manager;
-        std::shared_ptr<Log> _logStream;
+        std::shared_ptr<OLogStream> _logStream;
         std::shared_ptr<Fridge> _fridge;
         std::shared_ptr<OrderQueue> _orderQueue;
         bool _running;

@@ -33,14 +33,14 @@ const std::unordered_map<std::string_view, Kitchen::commandInfo_t> Kitchen::__co
 
 Kitchen::Kitchen(std::unique_ptr<IPCProtocol> &IPC, const std::string_view &logFile)
     : _IPC(std::move(IPC))
-    , _logStream(std::make_shared<Log>())
+    , _logStream(std::make_shared<OLogStream>(logFile))
     , _fridge(std::make_shared<Fridge>())
     , _orderQueue(std::make_shared<OrderQueue>())
     , _running(false)
     , _cookTimeMultiplier(0)
     , _maxOrderQueue(0)
 {
-    _logStream->open(logFile);
+    _logStream->log("New kitchen created");
 }
 
 Kitchen::~Kitchen()
@@ -48,6 +48,8 @@ Kitchen::~Kitchen()
     _IPC->close();
     stop();
     _manager.join();
+    _cooks.clear();
+    _logStream->log("Kitchen closed");
 }
 
 void Kitchen::start()

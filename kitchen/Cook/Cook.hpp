@@ -13,7 +13,7 @@
 #include "deps/plazza/Pizza.hpp"
 #include "OrderQueue/OrderQueue.hpp"
 #include "Fridge/Fridge.hpp"
-#include "Log/Log.hpp"
+#include "deps/OLogStream.hpp"
 
 class Cook {
     public:
@@ -25,7 +25,7 @@ class Cook {
          * @param cookTimeMultiplier cooking time multiplier
          * @param logOut a stream to log done pizzas onto
         **/
-        Cook(const std::shared_ptr<OrderQueue> &orderQueue, const std::shared_ptr<Fridge> &fridge, float cookTimeMultiplier, std::shared_ptr<Log> &logOut);
+        Cook(const std::shared_ptr<OrderQueue> &orderQueue, const std::shared_ptr<Fridge> &fridge, float cookTimeMultiplier, std::shared_ptr<OLogStream> &logOut);
         ~Cook();
 
         /**
@@ -43,7 +43,7 @@ class Cook {
 
     private:
         Thread _worker;
-        std::shared_ptr<Log> _logOut;
+        std::shared_ptr<OLogStream> _logOut;
         std::shared_ptr<OrderQueue> _orderQueue;
         std::shared_ptr<Fridge> _fridge;
         const float _cookTimeMultiplier;

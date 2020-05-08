@@ -11,7 +11,7 @@
 
 #include "Cook.hpp"
 
-Cook::Cook(const std::shared_ptr<OrderQueue> &orderQueue, const std::shared_ptr<Fridge> &fridge, float cookTimeMultiplier, std::shared_ptr<Log> &logOut)
+Cook::Cook(const std::shared_ptr<OrderQueue> &orderQueue, const std::shared_ptr<Fridge> &fridge, float cookTimeMultiplier, std::shared_ptr<OLogStream> &logOut)
     : _logOut(logOut)
     , _orderQueue(orderQueue)
     , _fridge(fridge)
@@ -53,11 +53,9 @@ void Cook::_cookNext()
         float realtime = pizza.getCookTime();
         realtime *= _cookTimeMultiplier;
         std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<size_t>(realtime)));
-        const std::string &end = Clock::getCurrentTime();
 
         pizza.setStatus(Pizza::ST_COOKED);
-        std::string logStr = end + " - " + pizza.getName() + " " + Pizza::getSizeStr(pizza.getSize()) + " (" + std::to_string(static_cast<size_t>(realtime)) + "ms)";
-        _logOut->log(logStr);
+        _logOut->log("Done: " + pizza.getName() + " " + Pizza::getSizeStr(pizza.getSize()) + " (" + std::to_string(static_cast<size_t>(realtime)) + "ms)");
         _cooking = false;
     } catch (const Exception &) {
         _running = false;
