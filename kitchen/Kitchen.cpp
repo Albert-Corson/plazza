@@ -5,8 +5,8 @@
 ** Kitchen
 */
 
+#include "deps/plazza/KitchenStatus.hpp"
 #include "Kitchen.hpp"
-#include "deps/KitchenStatus.hpp"
 
 const millisec_t Kitchen::__timeout = 5000;
 

@@ -8,7 +8,7 @@
 #include <memory>
 #include <vector>
 #include <string>
-#include "deps/KitchenStatus.hpp"
+#include "deps/plazza/KitchenStatus.hpp"
 #include "KitchenSpawner/AKitchenLink.hpp"
 
 bool AKitchenLink::start(float multiplier, int cooks, int interval)

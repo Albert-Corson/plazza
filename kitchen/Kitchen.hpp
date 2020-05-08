@@ -13,7 +13,7 @@
 #include "deps/IPC/IPCProtocol.hpp"
 #include "deps/Exception.hpp"
 #include "deps/Clock.hpp"
-#include "Pizza/Pizza.hpp"
+#include "deps/plazza/Pizza.hpp"
 #include "Fridge/Fridge.hpp"
 #include "Cook/Cook.hpp"
 #include "OrderQueue/OrderQueue.hpp"

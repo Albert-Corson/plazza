@@ -10,10 +10,10 @@
 #include <list>
 
 #include "deps/Thread.hpp"
-#include "../Pizza/Pizza.hpp"
-#include "../Fridge/Fridge.hpp"
-#include "../OrderQueue/OrderQueue.hpp"
-#include "../Log/Log.hpp"
+#include "deps/plazza/Pizza.hpp"
+#include "OrderQueue/OrderQueue.hpp"
+#include "Fridge/Fridge.hpp"
+#include "Log/Log.hpp"
 
 class Cook {
     public:

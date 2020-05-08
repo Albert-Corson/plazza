@@ -14,7 +14,7 @@
 #include "deps/IPC/IPCProtocol.hpp"
 #include "KitchenSpawner/process/KitchenProcessSpawner.hpp"
 #include "KitchenManager/KitchenManager.hpp"
-#include "deps/pizzaSize.hpp"
+#include "deps/plazza/pizzaSize.hpp"
 
 static bool is_num(const std::string &str)
 {
