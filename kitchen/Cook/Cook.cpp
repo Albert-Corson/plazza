@@ -55,8 +55,8 @@ void Cook::_cookNext()
         std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<size_t>(realtime)));
         const std::string &end = Clock::getCurrentTime();
 
-        pizza.setStatus(Pizza::COOKED);
-        std::string logStr = end + " - " + pizza.getName() + " " + pizzaSizeStr.at(pizza.getSize()) + " (" + std::to_string(static_cast<size_t>(realtime)) + "ms)";
+        pizza.setStatus(Pizza::ST_COOKED);
+        std::string logStr = end + " - " + pizza.getName() + " " + Pizza::getSizeStr(pizza.getSize()) + " (" + std::to_string(static_cast<size_t>(realtime)) + "ms)";
         _logOut->log(logStr);
         _cooking = false;
     } catch (const Exception &) {

@@ -13,9 +13,7 @@ SRC	=	main.cpp											\
 		KitchenSpawner/AKitchenLink.cpp						\
 		KitchenManager/KitchenManager.cpp					\
 		Reception.cpp										\
-		ParsePizzas.cpp										\
-		LoadConfigs/LoadArgs.cpp							\
-		LoadConfigs/LoadConfig.cpp							\
+		PizzaMenu/PizzaMenu.cpp
 
 OBJ	=	$(SRC:.cpp=.o)
 

@@ -234,11 +234,11 @@ bool Kitchen::_cmdOrder(const argv_t &argv, std::string &responseMsg)
     } catch (...) {
         return (false);
     }
-    if (size < int(pizzaSize_t::S) || size > int(pizzaSize_t::XXL))
+    if (size < Pizza::SZ_S || size > Pizza::SZ_XXL)
         return (false);
     for (const auto &it : _recipe) {
         if (it.getName() == argv[1]) {
-            _orderQueue->addOrder(it, pizzaSize_t(size));
+            _orderQueue->addOrder(it, Pizza::psize(size));
             responseMsg.clear();
             return (true);
         }
@@ -258,7 +258,7 @@ bool Kitchen::_cmdStatus(const argv_t &argv, std::string &responseMsg)
             ++status.activeCooks;
     }
     for (const auto &it : _orderQueue->getQueue()) {
-        if (it.getStatus() != Pizza::COOKED)
+        if (it.getStatus() != Pizza::ST_COOKED)
             status.orderQueue.emplace_back(it.getName(), it.getSize(), it.getStatus());
     }
     if (argv.size() > 1) {

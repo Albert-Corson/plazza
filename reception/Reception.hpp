@@ -10,19 +10,18 @@
 
 #include <string>
 #include <memory>
-#include "ParsePizzas.hpp"
+#include "PizzaMenu/PizzaMenu.hpp"
 
 class Reception
 {
     public:
         int load_args(int argc, char const **argv);
-        int parse_pizza(std::string command);
-        int load_config(void);
+
     protected:
         unsigned int _timeMultiplier;
         unsigned int _cooksPerKitchen;
         unsigned int _restoreDelay;
-        Pizza _pizzas;
+        PizzaMenu _pizzaMenu;
 };
 
 #endif /* !MAIN_RECEPTION_HPP_ */

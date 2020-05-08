@@ -28,15 +28,15 @@ Pizza &OrderQueue::waitForOrder()
         if (!_running)
             return (true);
         for (const auto &it : queue) {
-            if (it.getStatus() == Pizza::IDLE)
+            if (it.getStatus() == Pizza::ST_IDLE)
                 return (true);
         }
         return (false);
     });
     if (_running) {
         for (auto &it : *_queue) {
-            if (it.getStatus() == Pizza::IDLE) {
-                it.setStatus(Pizza::COOKING);
+            if (it.getStatus() == Pizza::ST_IDLE) {
+                it.setStatus(Pizza::ST_COOKING);
                 _queue.notify_all();
                 return (it);
             }
@@ -45,7 +45,7 @@ Pizza &OrderQueue::waitForOrder()
     throw OrderQueue::Exception("waitForOrder: queue closed");
 }
 
-void OrderQueue::addOrder(const Pizza &pizza, pizzaSize_t size)
+void OrderQueue::addOrder(const Pizza &pizza, Pizza::psize size)
 {
     _queue.apply([&pizza, &size](auto &queue) {
         queue.push_back(pizza);
@@ -70,7 +70,7 @@ void OrderQueue::removeCookedPizzas()
     auto it = _queue->begin();
 
     while (it != _queue->end()) {
-        if (it->getStatus() == Pizza::COOKED) {
+        if (it->getStatus() == Pizza::ST_COOKED) {
             it = _queue->erase(it);
         } else {
             ++it;

@@ -31,7 +31,7 @@ class OrderQueue {
         /**
          * @brief add an order to the queue
         **/
-        void addOrder(const Pizza &pizza, pizzaSize_t size);
+        void addOrder(const Pizza &pizza, Pizza::psize size);
 
         /**
          * @brief get the size of the queue

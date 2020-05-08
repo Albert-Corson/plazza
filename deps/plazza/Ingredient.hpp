@@ -13,8 +13,6 @@
 
 class Ingredient {
     public:
-        class Exception;
-
         Ingredient(const std::string_view &ingredient, size_t amount)
             : _name(ingredient)
             , _amount(amount)
@@ -75,13 +73,4 @@ class Ingredient {
     private:
         std::string _name;
         size_t _amount;
-};
-
-class Ingredient::Exception : public ::Exception {
-    public:
-        Exception(const std::string &msg)
-            : ::Exception("Ingredient::Exception: " + msg)
-        {
-        }
-        ~Exception() override = default;
 };
