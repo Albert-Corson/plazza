@@ -11,14 +11,14 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include <regex>
 #include "deps/IPC/NamedPipe.hpp"
 #include "deps/IPC/IOStream.hpp"
+#include "deps/utils/StringUtils.hpp"
 
 // Inter-Process Communication Protocol
 class IPCProtocol
 {
-  public:
+public:
     IPCProtocol()
         : _comm{ std::make_shared<IOStream>() }
     {
@@ -53,17 +53,10 @@ class IPCProtocol
     bool receive(std::vector<std::string> &buffer) const
     {
         std::string strbuffer;
-        std::regex splitter("(\"[^\"]+\"|[^\\s\"]+)");
 
-        buffer.clear();
         if (!_comm->getline(strbuffer))
             return (false);
-        auto it = std::sregex_iterator(strbuffer.begin(), strbuffer.end(), splitter);
-        auto end = std::sregex_iterator();
-        for (; it != end; ++it) {
-            buffer.emplace_back(std::move(it->str()));
-        }
-        return (true);
+        return (StringUtils::strtab(strbuffer, buffer));
     }
 
     template<typename... Args>
@@ -82,6 +75,6 @@ class IPCProtocol
         return (_comm.get() != nullptr && _comm->good());
     }
 
-  private:
+private:
     std::shared_ptr<IIPC> _comm;
 };
