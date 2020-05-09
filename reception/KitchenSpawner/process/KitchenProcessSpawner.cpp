@@ -26,7 +26,8 @@ static inline const std::string locateKitchenBin()
     return ("bin/kitchen");
 }
 
-std::shared_ptr<IKitchenLink> KitchenProcessSpawner::spawn(float multiplier, int cooks, int interval)
+std::shared_ptr<IKitchenLink> KitchenProcessSpawner::spawn(float multiplier, int cooks, int interval,
+                                                           const std::vector<Pizza> &pizzaMenu)
 {
     static int id = 0;
     std::string name = "fifo" + std::to_string(id);
@@ -34,7 +35,7 @@ std::shared_ptr<IKitchenLink> KitchenProcessSpawner::spawn(float multiplier, int
         ++id;
         name = "fifo" + std::to_string(id);
     }
-    std::shared_ptr<KitchenProcessLink> link = std::make_unique<KitchenProcessLink>();
+    std::shared_ptr<KitchenProcessLink> link = std::make_shared<KitchenProcessLink>();
     std::shared_ptr<NamedPipe> pipe = std::make_shared<NamedPipe>(name);
     link->getIPC().connect(pipe);
     sig();
@@ -42,7 +43,7 @@ std::shared_ptr<IKitchenLink> KitchenProcessSpawner::spawn(float multiplier, int
     pid_t pid = link->getProcess().exec(kitchenBin.c_str(), name.c_str(), NULL);
     if (pid == -1)
         return (nullptr);
-    if (!link->start(multiplier, cooks, interval)) {
+    if (!link->start(multiplier, cooks, interval, pizzaMenu)) {
         link->stop();
         return (nullptr);
     }

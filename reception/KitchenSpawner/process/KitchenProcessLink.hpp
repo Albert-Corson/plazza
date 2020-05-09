@@ -14,14 +14,14 @@
 
 class KitchenProcessLink : public AKitchenLink
 {
-  public:
+public:
     KitchenProcessLink() = default;
     ~KitchenProcessLink() override final = default;
 
-    void waitstop() const override final;
-    bool isAlive() const override final;
+    void waitstop() override final;
+    bool isAlive() override final;
     Process &getProcess();
 
-  protected:
+protected:
     Process _process;
 };

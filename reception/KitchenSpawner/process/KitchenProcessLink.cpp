@@ -7,7 +7,7 @@
 
 #include "KitchenProcessLink.hpp"
 
-void KitchenProcessLink::waitstop() const
+void KitchenProcessLink::waitstop()
 {
     pid_t pid = _process.getPid();
 
@@ -16,7 +16,7 @@ void KitchenProcessLink::waitstop() const
     waitpid(pid, NULL, 0);
 }
 
-bool KitchenProcessLink::isAlive() const
+bool KitchenProcessLink::isAlive()
 {
     return (_process.isAlive());
 }

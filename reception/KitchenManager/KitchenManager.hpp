@@ -48,7 +48,7 @@ public:
         ~Exception() override = default;
     };
 
-    KitchenManager(float multiplier, int cooks, int interval);
+    KitchenManager(float multiplier, int cooks, int interval, const std::vector<Pizza> &pizzaMenu);
     ~KitchenManager();
 
     void bindSpawner(std::shared_ptr<IKitchenSpawner> spawner);
@@ -71,4 +71,5 @@ private:
 
     std::vector<std::shared_ptr<SpawnerInfo>> _spawners;
     std::vector<KitchenInfo> _kitchens;
+    const std::vector<Pizza> &_pizzaMenu;
 };

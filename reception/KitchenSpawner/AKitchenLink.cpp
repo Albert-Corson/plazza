@@ -11,31 +11,31 @@
 #include "deps/plazza/KitchenStatus.hpp"
 #include "KitchenSpawner/AKitchenLink.hpp"
 
-bool AKitchenLink::start(float multiplier, int cooks, int interval)
+bool AKitchenLink::start(float multiplier, int cooks, int interval,
+                         const std::vector<Pizza> &pizzaMenu)
 {
-    std::vector<std::string> pizzas = {
-        "pizza2 2000 a 1 b 2 c 3",
-        "pizza10 10000 a 5 b 1 d 2",
-        "pizza15 15000 a 10"
-    };
-
     std::vector<std::string> args;
 
-    _ipc.send("START "
-              + std::to_string(multiplier) + " "
-              + std::to_string(cooks) + " "
-              + std::to_string(interval));
+    _ipc.send("START", std::to_string(multiplier), std::to_string(cooks), std::to_string(interval));
     if (!_ipc.receive(args) || args[0] != "OK")
         return (false);
-    for (const auto &pizza : pizzas) {
-        _ipc.send("NEW_RECIPE " + pizza);
+    for (const auto &pizza : pizzaMenu) {
+        std::string recipe = "NEW_RECIPE "
+            + pizza.getName() + " "
+            + std::to_string(pizza.getCookTime());
+
+        for (const auto &ingredient : pizza.getRecipe())
+            recipe += " \"" + ingredient.getName() + "\" "
+                + std::to_string(ingredient.getAmount());
+
+        _ipc.send(recipe);
         if (!_ipc.receive(args) || args[0] != "OK")
             return (false);
     }
     return (true);
 }
 
-void AKitchenLink::stop() const
+void AKitchenLink::stop()
 {
     if (this->isAlive()) {
         std::vector<std::string> args;
@@ -48,7 +48,7 @@ void AKitchenLink::stop() const
     }
 }
 
-unsigned int AKitchenLink::getAvailability() const
+unsigned int AKitchenLink::getAvailability()
 {
     if (!this->isAlive())
         return (false);
@@ -62,7 +62,7 @@ unsigned int AKitchenLink::getAvailability() const
     return (status.orderQueueCapacity - status.orderQueue.size());
 }
 
-bool AKitchenLink::isAvailable() const
+bool AKitchenLink::isAvailable()
 {
     return (this->getAvailability() > 0);
 }

@@ -7,10 +7,12 @@
 
 #include "KitchenManager.hpp"
 
-KitchenManager::KitchenManager(float multiplier, int cooks, int interval)
+KitchenManager::KitchenManager(float multiplier, int cooks, int interval,
+                               const std::vector<Pizza> &pizzaMenu)
     : _multiplier{ multiplier }
     , _cooks{ cooks }
     , _interval{ interval }
+    , _pizzaMenu{ pizzaMenu }
 {
 }
 
@@ -53,7 +55,7 @@ void KitchenManager::resetCache()
 int KitchenManager::addKitchen(std::shared_ptr<SpawnerInfo> spawner)
 {
     int index = _kitchens.size();
-    auto kitchen = spawner->spawner->spawn(_multiplier, _cooks, _interval);
+    auto kitchen = spawner->spawner->spawn(_multiplier, _cooks, _interval, _pizzaMenu);
     if (kitchen.get() == nullptr)
         return (-1);
     spawner->kitchensCount++;

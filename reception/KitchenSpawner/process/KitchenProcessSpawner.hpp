@@ -15,10 +15,10 @@
 
 class KitchenProcessSpawner : public IKitchenSpawner
 {
-  public:
+public:
     class Exception : public ::Exception
     {
-      public:
+    public:
         Exception(const std::string &msg)
             : ::Exception("KitchenProcessSpawner::Exception: " + msg)
         {
@@ -29,5 +29,6 @@ class KitchenProcessSpawner : public IKitchenSpawner
     KitchenProcessSpawner() = default;
     ~KitchenProcessSpawner() = default;
 
-    std::shared_ptr<IKitchenLink> spawn(float multiplier, int cooks, int interval) override final;
+    std::shared_ptr<IKitchenLink> spawn(float multiplier, int cooks, int interval,
+                                        const std::vector<Pizza> &pizzaMenu) override final;
 };
