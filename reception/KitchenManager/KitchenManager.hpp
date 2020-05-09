@@ -55,6 +55,7 @@ public:
     void unbindSpawner(std::shared_ptr<IKitchenSpawner> spawner);
     void resetCache();
     IKitchenLink &queryKitchen();
+    void dump();
 
 private:
     void clearKitchens();

@@ -26,7 +26,7 @@ class Reception
 
         ~Reception() = default;
         void start(void);
-        void parseCli(std::string buffer);
+        void parseCommands(std::string buffer);
         void sendToKitchen(void);
 
     protected:

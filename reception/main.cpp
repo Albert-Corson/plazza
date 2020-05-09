@@ -23,7 +23,7 @@ int main(int argc, char const *argv[])
     unsigned int restoreDelay = 0;
 
     if (argc != 4) {
-        if (argc == 2 && std::strcmp(argv[1], "-h")) {
+        if (argc == 2 && !std::strcmp(argv[1], "-h")) {
             help(argv[0]);
             return (0);
         } else {

@@ -139,3 +139,10 @@ IKitchenLink &KitchenManager::queryKitchen()
     _kitchens[kitchenId].availableSlots--;
     return (*_kitchens[kitchenId].link);
 }
+
+void KitchenManager::dump()
+{
+    // Minimum information to Display:
+    //     - cooks occupancy
+    //     - ingredients stock
+}

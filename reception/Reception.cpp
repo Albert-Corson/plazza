@@ -11,7 +11,7 @@
 #include <string>
 #include <regex>
 
-void Reception::parseCli(std::string buffer)
+void Reception::parseCommands(std::string buffer)
 {
     std::regex format("^[ \\t]*([A-Za-z0-9]+)[ \\t]+(S|M|L|XL|XXL)[ \\t]+x([0-9]+)[ \\t]*");
     std::smatch matches;
@@ -48,7 +48,13 @@ void Reception::start(void)
     std::string buffer;
 
     while (std::getline(std::cin, buffer)) {
-        this->parseCli(buffer);
+        if (buffer == "exit") {
+            break;
+        } else if (buffer == "status") {
+            _kitchenManager.dump();
+        } else {
+            this->parseCommands(buffer);
+        }
     }
 }
 
@@ -57,12 +63,11 @@ void Reception::sendToKitchen(void)
     std::vector<std::string> args;
 
     while (_tempPizzaOrder > 0) {
-        std::cout << "Data to send " << _tempPizzaName << " " <<  _tempPizzaSize << std::endl;
         --_tempPizzaOrder;
         auto &kitchen = _kitchenManager.queryKitchen();
         auto &ipc = kitchen.getIPC();
 
-        ipc.send("ORDER pizza2 4");
+        ipc.send("ORDER " + _tempPizzaName + " " + Pizza::getSizeStr(_tempPizzaSize));
         ipc.receive(args);
     }
 }
