@@ -5,44 +5,40 @@
 ** main
 */
 
-// #include "KitchenManager/KitchenManager.hpp"
-// #include "KitchenSpawner/process/KitchenProcessSpawner.hpp"
-
-// int main(int argc, char const *argv[])
-// {
-//     float multiplier = std::stof(argv[1]);
-//     int cooks = std::stod(argv[2]);
-//     int interval = std::stod(argv[3]);
-
-//     KitchenManager manager(multiplier, cooks, interval);
-//     manager.bindSpawner(std::make_shared<KitchenProcessSpawner>());
-
-//     std::string command;
-//     std::vector<std::string> args;
-//     while (std::cin >> command) {
-//         manager.resetCache();
-//         auto &kitchen = manager.queryKitchen();
-//         auto &ipc = kitchen.getIPC();
-//         ipc.send("ORDER pizza2 4");
-//         ipc.receive(args);
-//     }
-//     return (0);
-// }
-
 #include <iostream>
-#include "PizzaMenu/PizzaMenu.hpp"
+#include "Reception.hpp"
+
+static void help(const char *binName)
+{
+    std::cerr << "USAGE: " << binName << " <multiplier> <cooks> <refill>" << std::endl
+              << "\tmultiplier\tcooking time multiplier" << std::endl
+              << "\tcooks\tnumber of cooks per kitchen" << std::endl
+              << "\trefill\ttime interval between ingredients stocks refills (in ms)" << std::endl;
+}
 
 int main(int argc, char const *argv[])
 {
-    PizzaMenu menu("./pizzas");
+    unsigned int timeMultiplier = 0;
+    unsigned int cooksPerKitchen = 0;
+    unsigned int restoreDelay = 0;
 
-    for (const auto &it : menu) {
-        std::cout << it.getName() << " " << it.getCookTime() << std::endl;
-        for (const auto &reit : it.getRecipe()) {
-            std::cout << "\t" << reit.getName() << " " << reit.getAmount() << std::endl;
+    if (argc != 4) {
+        if (argc == 2 && std::strcmp(argv[1], "-h")) {
+            help(argv[0]);
+            return (0);
+        } else {
+            return (84);
         }
-        std::cout << std::endl;
     }
+    timeMultiplier = std::atoi(argv[1]);
+    cooksPerKitchen = std::atoi(argv[2]);
+    restoreDelay = std::atoi(argv[3]);
+    Reception reception(timeMultiplier, cooksPerKitchen, restoreDelay);
 
+    try {
+        reception.start();
+    } catch (...) {
+        return (84);
+    }
     return (0);
 }

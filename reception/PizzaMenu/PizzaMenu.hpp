@@ -31,6 +31,11 @@ class PizzaMenu : public std::vector<Pizza> {
          * @return bool error/success
         **/
         bool loadConfigs(const std::string &folderPath);
+
+        /**
+         * @brief Check if the 'buffer' is a valid Pizza
+        **/
+        bool isGoodPizzaName(const std::string &buffer);
 };
 
 class PizzaMenu::Exception : public ::Exception {

@@ -11,17 +11,30 @@
 #include <string>
 #include <memory>
 #include "PizzaMenu/PizzaMenu.hpp"
+#include "KitchenManager/KitchenManager.hpp"
+#include "KitchenSpawner/process/KitchenProcessSpawner.hpp"
 
 class Reception
 {
     public:
-        int load_args(int argc, char const **argv);
+        Reception(unsigned int timeMultiplier, unsigned int cooksPerKitchen, unsigned int restoreDelay)
+        : _pizzaMenu("./pizzas")
+        , _kitchenManager(timeMultiplier, cooksPerKitchen, restoreDelay)
+        {
+            _kitchenManager.bindSpawner(std::make_shared<KitchenProcessSpawner>());
+        }
+
+        ~Reception() = default;
+        int start(void);
+        int parseCli(std::string buffer);
+        int sendToKitchen(void);
 
     protected:
-        unsigned int _timeMultiplier;
-        unsigned int _cooksPerKitchen;
-        unsigned int _restoreDelay;
         PizzaMenu _pizzaMenu;
+        std::string _tempPizzaName;
+        Pizza::psize _tempPizzaSize;
+        int _tempPizzaOrder;
+        KitchenManager _kitchenManager;
 };
 
 #endif /* !MAIN_RECEPTION_HPP_ */

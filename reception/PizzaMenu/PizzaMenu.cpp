@@ -35,3 +35,12 @@ bool PizzaMenu::loadConfigs(const std::string &folderPath)
     }
     return (true);
 }
+
+bool PizzaMenu::isGoodPizzaName(const std::string &buffer)
+{
+    for (const auto &it : *this) {
+        if (buffer == it.getName())
+            return (true);
+    }
+    return (false);
+}
