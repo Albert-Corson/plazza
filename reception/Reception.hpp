@@ -25,9 +25,9 @@ class Reception
         }
 
         ~Reception() = default;
-        int start(void);
-        int parseCli(std::string buffer);
-        int sendToKitchen(void);
+        void start(void);
+        void parseCli(std::string buffer);
+        void sendToKitchen(void);
 
     protected:
         PizzaMenu _pizzaMenu;

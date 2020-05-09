@@ -33,9 +33,9 @@ int main(int argc, char const *argv[])
     timeMultiplier = std::atoi(argv[1]);
     cooksPerKitchen = std::atoi(argv[2]);
     restoreDelay = std::atoi(argv[3]);
-    Reception reception(timeMultiplier, cooksPerKitchen, restoreDelay);
 
     try {
+        Reception reception(timeMultiplier, cooksPerKitchen, restoreDelay);
         reception.start();
     } catch (...) {
         return (84);
