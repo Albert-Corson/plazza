@@ -6,9 +6,11 @@
 */
 
 #include <signal.h>
+
 #include "KitchenProcessSpawner.hpp"
 #include "KitchenProcessLink.hpp"
 #include "deps/IPC/NamedPipe.hpp"
+#include "logfile.hpp"
 
 static struct sigaction oldhandler;
 
@@ -38,7 +40,7 @@ std::shared_ptr<IKitchenLink> KitchenProcessSpawner::spawn(float multiplier, int
     std::shared_ptr<KitchenProcessLink> link = std::make_unique<KitchenProcessLink>(name);
     sig();
     const std::string &kitchenBin = locateKitchenBin();
-    pid_t pid = link->getProcess().exec(kitchenBin.c_str(), name.c_str(), NULL);
+    pid_t pid = link->getProcess().exec(kitchenBin.c_str(), name.c_str(), LOGFILE);
     if (pid == -1)
         return (nullptr);
     if (!link->start(multiplier, cooks, interval, pizzaMenu)) {

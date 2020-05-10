@@ -37,10 +37,11 @@ class OLogStream {
         **/
         static bool makeFile(const std::string_view &path)
         {
-            int fd = ::open(path.data(), O_CREAT | O_WRONLY | O_TRUNC, 0666);
+            int fd = ::open(path.data(), O_CREAT | O_WRONLY, 0666);
 
             if (fd < 0)
                 return (false);
+            close(fd);
             return (true);
         }
 
@@ -49,8 +50,6 @@ class OLogStream {
         **/
         void open(const std::string_view &path)
         {
-            if (*_fdLock > 0)
-                close(*_fdLock);
             *_fdLock = ::open(path.data(), O_WRONLY);
             if (*_fdLock < 0)
                 *_fdLock = 1;

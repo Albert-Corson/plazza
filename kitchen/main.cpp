@@ -5,34 +5,77 @@
 ** main
 */
 
+#include <list>
+#include <string_view>
+#include <algorithm>
+
+#include "deps/Socket.hpp"
 #include "deps/IPC/NamedPipe.hpp"
+#include "deps/IPC/Network.hpp"
 #include "deps/IPC/IPCProtocol.hpp"
 #include "Kitchen.hpp"
 
 static void help(const char *binName)
 {
-    std::cerr << "USAGE: " << binName << " [fifoPath] [logFile]" << std::endl
-              << "\tIf no arguments are given, stdin and stdout are used." << std::endl;
+    std::cerr << "USAGE: " << binName << " [fifoPath [logFile]]" << std::endl
+              << "\t--network   -N: start the kitchen in network mode, in which case" << std::endl
+              << "\t\t\tit needs the `fifoPath` (as the first argument other than --network)" << std::endl
+              << "\t--help      -h: show this menu" << std::endl
+              << std::endl
+              << "\tIf no arguments are provided, stdin and stdout are used." << std::endl;
 }
 
-static std::unique_ptr<IPCProtocol> initIPC(int argc, char const *argv[])
+static std::unique_ptr<IPCProtocol> initNetworkIPC(const std::string_view &fifoPath)
 {
-    std::unique_ptr<IPCProtocol> ipc = std::make_unique<IPCProtocol>();
+    sockaddr_in serverinfo = Socket::localinfo();
+    NamedPipe fifo(fifoPath.data());
+    Socket sock;
+
+    sock.listen(0, INADDR_ANY, 1);
+    serverinfo.sin_port = sock.info().sin_port;
+    fifo.send((char *)&serverinfo, sizeof(serverinfo));
+    std::shared_ptr<Network> network = std::make_shared<Network>(sock.accept());
+    return (std::make_unique<IPCProtocol>(network));
+}
+
+static std::unique_ptr<IPCProtocol> initNamedPipeIPC(const std::string_view &fifoPath)
+{
     std::shared_ptr<NamedPipe> pipe = std::make_shared<NamedPipe>();
 
-    if (argc >= 2) {
-        if (!pipe->open(argv[1])) {
-            std::cerr << "Couldn't open named pipe: " << strerror(errno) << std::endl;
-            return (nullptr);
-        }
-        ipc->connect(pipe);
+    if (!pipe->open(fifoPath.data())) {
+        std::cerr << "`" << fifoPath << "`: couldn't open named pipe: " << strerror(errno) << std::endl;
+        return (nullptr);
     }
-    return (ipc);
+    return (std::make_unique<IPCProtocol>(pipe));
+}
+
+static std::unique_ptr<IPCProtocol> initIPC(std::list<std::string_view> &argvList)
+{
+    bool network = false;
+    auto it = std::find_if(argvList.begin(), argvList.end(), [](const auto &elem) {
+        return (elem == "--network" || elem == "-N");
+    });
+
+    if (it != argvList.end()) {
+        if (argvList.size() < 2)
+            return (nullptr);
+        argvList.erase(it);
+        network = true;
+    }
+    if (argvList.size() != 0) {
+        std::string_view fifoPath = argvList.front();
+        argvList.pop_front();
+        if (network)
+            return (initNetworkIPC(fifoPath));
+        else
+            return (initNamedPipeIPC(fifoPath));
+    }
+    return (std::make_unique<IPCProtocol>());
 }
 
 int main(int argc, char const *argv[])
 {
-    std::ofstream log;
+    std::list<std::string_view> argvList;
 
     for (int i = 0; i < argc; ++i) {
         if (!strcasecmp("-h", argv[i]) || !strcasecmp("--help", argv[i])) {
@@ -40,13 +83,13 @@ int main(int argc, char const *argv[])
             return (1);
         }
     }
-    std::unique_ptr<IPCProtocol> ipc = initIPC(argc, argv);
-    if (argc > 3 || ipc == nullptr || !ipc->good() || !log.good()) {
-        help(argv[0]);
+    for (int i = 1; i < argc; ++i)
+        argvList.emplace_back(argv[i]);
+    std::unique_ptr<IPCProtocol> ipc = initIPC(argvList);
+    if (ipc == nullptr || !ipc->good())
         return (1);
-    }
     try {
-        Kitchen kitchen(ipc, argc == 3 ? argv[2] : "");
+        Kitchen kitchen(ipc, argvList.size() ? argvList.front() : "");
         kitchen.start();
     } catch (const std::exception &err) {
         std::cerr << "Kitchen fatal error:" << std::endl

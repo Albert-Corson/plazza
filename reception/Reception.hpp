@@ -10,6 +10,8 @@
 
 #include <string>
 #include <memory>
+
+#include "deps/OLogStream.hpp"
 #include "PizzaMenu/PizzaMenu.hpp"
 #include "KitchenManager/KitchenManager.hpp"
 #include "KitchenSpawner/process/KitchenProcessSpawner.hpp"
@@ -17,19 +19,15 @@
 class Reception
 {
 public:
-    Reception(unsigned int timeMultiplier, unsigned int cooksPerKitchen, unsigned int restoreDelay)
-        : _pizzaMenu("./pizzas")
-        , _kitchenManager(timeMultiplier, cooksPerKitchen, restoreDelay, _pizzaMenu)
-    {
-        _kitchenManager.bindSpawner(std::make_shared<KitchenProcessSpawner>());
-    }
+    Reception(unsigned int timeMultiplier, unsigned int cooksPerKitchen, unsigned int restoreDelay);
+    ~Reception();
 
-    ~Reception() = default;
     void start(void);
-    void parseCommands(std::string buffer);
+    void parseOrders(std::string buffer);
     void sendToKitchen(void);
 
 protected:
+    OLogStream _logStream;
     PizzaMenu _pizzaMenu;
     std::string _tempPizzaName;
     Pizza::psize _tempPizzaSize;

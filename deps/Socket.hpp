@@ -23,6 +23,12 @@
  */
 class Socket : public std::ios
 {
+public:
+    enum type {
+        TCP = SOCK_STREAM,
+        UDP = SOCK_DGRAM
+    };
+
 private:
     int _sd{ -1 };
     int _errno{ 0 };
@@ -48,13 +54,14 @@ public:
     /**
      * @brief Construct a new socket
      */
-    Socket()
-        : Socket(socket(PF_INET, SOCK_STREAM, 0))
+    Socket(type protocol = TCP)
+        : Socket(socket(PF_INET, protocol, 0))
     {
     }
-    Socket(const Socket &&other)
+    Socket(Socket &&other)
         : _sd{ std::move(other._sd) }
     {
+        other._sd = -1;
     }
     ~Socket()
     {
@@ -72,8 +79,9 @@ public:
     {
         struct sockaddr_in st_addr = {
             .sin_family = AF_INET,
-            .sin_port = htons(port),
-            .sin_addr = { .s_addr = htonl(addr) }
+            .sin_port = port,
+            .sin_addr = { .s_addr = addr },
+            .sin_zero = { 0 }
         };
         socklen_t addrlen = sizeof(st_addr);
 
@@ -122,8 +130,9 @@ public:
     {
         struct sockaddr_in st_addr = {
             .sin_family = AF_INET,
-            .sin_port = htons(port),
-            .sin_addr = { .s_addr = htonl(addr) }
+            .sin_port = port,
+            .sin_addr = { .s_addr = addr },
+            .sin_zero = { 0 }
         };
         socklen_t addrlen = sizeof(st_addr);
 
@@ -235,9 +244,9 @@ public:
     /**
      * @brief Get info about the socket
      */
-    const struct sockaddr_in &info()
+    struct sockaddr_in info()
     {
-        static struct sockaddr_in st_addr;
+        struct sockaddr_in st_addr;
         socklen_t addrlen = sizeof(st_addr);
 
         if (getsockname(_sd, (struct sockaddr *)&st_addr, &addrlen) == -1)
@@ -247,9 +256,9 @@ public:
     /**
      * @brief Get info about the peer connect to the socket
      */
-    const struct sockaddr_in &peerinfo()
+    struct sockaddr_in peerinfo()
     {
-        static struct sockaddr_in st_addr;
+        struct sockaddr_in st_addr;
         socklen_t addrlen = sizeof(st_addr);
 
         if (getpeername(_sd, (struct sockaddr *)&st_addr, &addrlen) == -1)
@@ -259,15 +268,14 @@ public:
     /**
      * @brief Get info about local loopback
      */
-    const struct sockaddr_in &localinfo()
+    static struct sockaddr_in localinfo()
     {
-        static struct sockaddr_in st_addr;
+        struct sockaddr_in st_addr;
         socklen_t addrlen = sizeof(st_addr);
-        Socket local;
+        Socket local(UDP);
 
         local.connect(0, INADDR_LOOPBACK);
-        if (getsockname(local._sd, (struct sockaddr *)&st_addr, &addrlen) == -1)
-            this->setstate(failbit);
+        getsockname(local._sd, (struct sockaddr *)&st_addr, &addrlen);
         return (st_addr);
     }
 

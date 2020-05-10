@@ -15,6 +15,10 @@ class Network : public IIPC
 {
 public:
     Network(){};
+    Network(Socket &&socket)
+        : _socket(std::move(socket))
+    {
+    }
     Network(const Network &other){};
     ~Network(){};
 

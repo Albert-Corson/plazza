@@ -35,7 +35,7 @@ class Process
     ~Process() = default;
 
     /**
-     * @brief Execute `path` into a fork with all arguments after it until a NULL pointer.
+     * @brief Execute `path` into a fork with all arguments after.
      * 
      * @return pid_t the child process pid
     **/
@@ -44,7 +44,7 @@ class Process
     {
         this->fork();
         if (_pid == 0) {
-            int status = execl(path, path, args...);
+            int status = execl(path, path, args..., NULL);
             exit(status == -1);
         }
         return (_pid);
