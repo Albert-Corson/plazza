@@ -15,9 +15,11 @@ SRC	=	PizzaMenu/PizzaMenu.cpp								\
 		Reception.cpp										\
 		KitchenManager/KitchenManager.cpp					\
 		KitchenSpawner/AKitchenLink.cpp						\
+		KitchenSpawner/network/KitchenNetworkSpawner.cpp	\
+		KitchenSpawner/network/KitchenNetworkLink.cpp		\
 		KitchenSpawner/process/KitchenProcessSpawner.cpp	\
 		KitchenSpawner/process/KitchenProcessLink.cpp		\
-		tests/KitchenManagerTests.cpp				\
+		tests/KitchenManagerTests.cpp
 
 OBJ	=	$(addprefix ../, $(SRC:.cpp=.o))
 
@@ -43,11 +45,12 @@ clean:
 	rm -f *.gcno
 
 fclean: clean
-	rm -f ../$(NAME)
+	rm -f $(NAME)
+	rm -f plazza.log
 
 re: fclean all
 
-tests_run:
+tests_run: all
 	make -C tests
 
 .PHONY: all clean fclean re tests_run
