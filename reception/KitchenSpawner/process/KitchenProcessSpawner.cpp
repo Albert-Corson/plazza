@@ -11,6 +11,7 @@
 #include "KitchenProcessLink.hpp"
 #include "deps/IPC/NamedPipe.hpp"
 #include "logfile.hpp"
+#include "locateKitchenBin.hpp"
 
 static struct sigaction oldhandler;
 
@@ -21,11 +22,6 @@ static void sig()
     sigemptyset(&newhandler.sa_mask);
     newhandler.sa_flags = 0;
     sigaction(SIGCHLD, &newhandler, NULL);
-}
-
-static inline const std::string locateKitchenBin()
-{
-    return ("bin/kitchen");
 }
 
 std::shared_ptr<IKitchenLink> KitchenProcessSpawner::spawn(float multiplier, int cooks, int interval,

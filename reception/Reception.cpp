@@ -16,17 +16,18 @@
 
 Reception::Reception(unsigned int timeMultiplier, unsigned int cooksPerKitchen, unsigned int restoreDelay)
     : _pizzaMenu("./pizzas")
-    , _kitchenManager(timeMultiplier, cooksPerKitchen, restoreDelay, _pizzaMenu)
+    , _kitchenManager(std::make_unique<KitchenManager>(timeMultiplier, cooksPerKitchen, restoreDelay, _pizzaMenu))
 {
     if (!OLogStream::makeFile(LOGFILE))
         std::cerr << "Error: couldn't create log file `" << LOGFILE << "`, using stdout" << std::endl;
     _logStream.open(LOGFILE);
     _logStream.log("Reception started");
-    _kitchenManager.bindSpawner(std::make_shared<KitchenProcessSpawner>());
+    _kitchenManager->bindSpawner(std::make_shared<KitchenProcessSpawner>());
 }
 
 Reception::~Reception() 
 {
+    _kitchenManager = nullptr;
     _logStream.log("Recpetion closed\n");
 }
 
@@ -65,7 +66,7 @@ void Reception::start(void)
         if (buffer == "exit") {
             break;
         } else if (buffer == "status") {
-            _kitchenManager.dump();
+            _kitchenManager->dump();
         } else {
             this->parseOrders(buffer);
         }
@@ -79,7 +80,7 @@ void Reception::sendToKitchen(void)
 
     while (_tempPizzaOrder > 0) {
         --_tempPizzaOrder;
-        auto &kitchen = _kitchenManager.queryKitchen();
+        auto &kitchen = _kitchenManager->queryKitchen();
         auto &ipc = kitchen.getIPC();
 
         ipc.send("ORDER", _tempPizzaName, _tempPizzaSize);

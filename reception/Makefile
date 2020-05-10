@@ -15,7 +15,8 @@ SRC	=	main.cpp											\
 		KitchenSpawner/AKitchenLink.cpp						\
 		KitchenManager/KitchenManager.cpp					\
 		Reception.cpp										\
-		PizzaMenu/PizzaMenu.cpp
+		PizzaMenu/PizzaMenu.cpp								\
+		locateKitchenBin.cpp
 
 OBJ	=	$(SRC:.cpp=.o)
 

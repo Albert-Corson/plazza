@@ -32,7 +32,7 @@ protected:
     std::string _tempPizzaName;
     Pizza::psize _tempPizzaSize;
     int _tempPizzaOrder;
-    KitchenManager _kitchenManager;
+    std::unique_ptr<KitchenManager> _kitchenManager;
 };
 
 #endif /* !MAIN_RECEPTION_HPP_ */
