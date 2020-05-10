@@ -75,7 +75,7 @@ public:
             throw Process::Exception("No child process started");
         else if (_pid == 0)
             throw Process::Exception("A child process cannot wait for it's parent");
-        if (wait(&status) != _pid) {
+        if (waitpid(_pid, &status, 0) != _pid) {
             throw Process::Exception("Couldn't wait for the child process to finish");
         }
         return (status);

@@ -16,12 +16,17 @@ static inline const std::string locateKitchenBin()
     return ("bin/kitchen");
 }
 
+KitchenNetworkSpawner::KitchenNetworkSpawner(std::shared_ptr<Socket> interface) 
+    : _interface{ interface }
+{
+}
+
 std::shared_ptr<IKitchenLink> KitchenNetworkSpawner::spawn()
 {
-    std::string cmd = "SPAWN";
-    _interface.write(cmd.c_str(), cmd.size());
+    std::string cmd = "SPAWN\n";
+    _interface->write(cmd.c_str(), cmd.size());
     std::string BUFFER;
-    _interface.getline(BUFFER);
+    _interface->getline(BUFFER);
     std::vector<std::string> args;
 
     StringUtils::strtab(BUFFER, args);
@@ -29,9 +34,9 @@ std::shared_ptr<IKitchenLink> KitchenNetworkSpawner::spawn()
         std::cerr << "Couldn't spawn kitchen" << std::endl;
         return (nullptr);
     }
-    std::string address = args[1];
-    in_port_t port = std::stoul(args[2]);
+    std::string &address = args[1];
+    in_port_t port = htons(std::stoul(args[2]));
     pid_t pid = std::stoul(args[3]);
 
-    return (std::make_shared<KitchenNetworkLink>(address, port, pid));
+    return (std::make_shared<KitchenNetworkLink>(_interface, address, port, pid));
 }

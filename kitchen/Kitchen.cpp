@@ -163,15 +163,15 @@ bool Kitchen::_cmdStart(const argv_t &argv, std::string &responseMsg)
         size_t read = 0;
 
         const float multiplier = std::stof(argv[1], &read);
-        if (read < argv[1].size() || multiplier < 0)
+        if (multiplier < 0 || read < argv[1].size())
             return (false);
 
         size_t maxCooks = std::stoul(argv[2], &read);
-        if (read < argv[2].size() || maxCooks == 0)
+        if (maxCooks == 0 || read < argv[2].size())
             return (false);
 
         const millisec_t restockRate = std::stol(argv[3], &read);
-        if (read < argv[3].size())
+        if (restockRate <= 0 || read < argv[3].size())
             return (false);
 
         _cookTimeMultiplier = multiplier;

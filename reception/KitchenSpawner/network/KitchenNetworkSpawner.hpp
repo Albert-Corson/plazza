@@ -14,12 +14,10 @@
 #include "deps/Exception.hpp"
 #include "deps/Socket.hpp"
 
-class KitchenNetworkSpawner : public IKitchenSpawner
-{
-  public:
-    class Exception : public ::Exception
-    {
-      public:
+class KitchenNetworkSpawner : public IKitchenSpawner {
+public:
+    class Exception : public ::Exception {
+    public:
         Exception(const std::string &msg)
             : ::Exception("KitchenNetworkSpawner::Exception: " + msg)
         {
@@ -28,10 +26,11 @@ class KitchenNetworkSpawner : public IKitchenSpawner
     };
 
     KitchenNetworkSpawner() = default;
+    KitchenNetworkSpawner(std::shared_ptr<Socket> interface);
     ~KitchenNetworkSpawner() = default;
 
     std::shared_ptr<IKitchenLink> spawn() override final;
 
-  private:
-    Socket _interface;
+private:
+    std::shared_ptr<Socket> _interface;
 };
