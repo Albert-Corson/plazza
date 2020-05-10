@@ -11,6 +11,7 @@
 #include <memory>
 #include "deps/Exception.hpp"
 #include "KitchenSpawner/IKitchenSpawner.hpp"
+#include "KitchenSpawner/IKitchenLink.hpp"
 
 struct SpawnerInfo {
     SpawnerInfo(std::shared_ptr<IKitchenSpawner> kitchenSpawner)

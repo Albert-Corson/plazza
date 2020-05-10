@@ -7,9 +7,11 @@
 
 #pragma once
 
-#include "deps/IPC/IPCProtocol.hpp"
-#include "deps/plazza/Pizza.hpp"
-#include "IKitchenLink.hpp"
+#include <vector>
+#include <memory>
+
+class Pizza;
+class IKitchenLink;
 
 class IKitchenSpawner
 {

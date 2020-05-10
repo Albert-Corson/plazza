@@ -10,6 +10,7 @@
 #include <regex>
 
 #include "Reception.hpp"
+#include "KitchenSpawner/IKitchenLink.hpp"
 #include "deps/utils/StringUtils.hpp"
 #include "logfile.hpp"
 

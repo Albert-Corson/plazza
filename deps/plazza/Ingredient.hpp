@@ -9,8 +9,6 @@
 
 #include <string_view>
 
-#include "deps/Exception.hpp"
-
 class Ingredient {
     public:
         Ingredient(const std::string_view &ingredient, size_t amount)

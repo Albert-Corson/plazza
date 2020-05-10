@@ -11,7 +11,7 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include "deps/IPC/NamedPipe.hpp"
+
 #include "deps/IPC/IOStream.hpp"
 #include "deps/utils/StringUtils.hpp"
 

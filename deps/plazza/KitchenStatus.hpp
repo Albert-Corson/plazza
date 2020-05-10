@@ -22,7 +22,7 @@ struct KitchenStatus {
      * @brief returns a string buffer containing the kitchen infos in the following format:
      * <activeCooks> <totalCooks> <orderQueueCapacity> [<pizza> <size> <status>]...
      * 
-     * @return const std::string& 
+     * @return const std::string &
     **/
     const std::string &serialize() const noexcept
     {
@@ -127,27 +127,3 @@ struct KitchenStatus {
         }
     }
 };
-
-std::string &operator<<(std::string &lhs, const KitchenStatus &rhs)
-{
-    lhs = rhs.serialize();
-    return (lhs);
-}
-
-std::ostream &operator<<(std::ostream &lhs, const KitchenStatus &rhs)
-{
-    lhs << rhs.serialize();
-    return (lhs);
-}
-
-KitchenStatus &operator>>(const std::vector<std::string> &lhs, KitchenStatus &rhs)
-{
-    rhs.deserialize(lhs);
-    return (rhs);
-}
-
-KitchenStatus &operator>>(const std::string &lhs, KitchenStatus &rhs)
-{
-    rhs.deserialize(lhs);
-    return (rhs);
-}

@@ -57,8 +57,7 @@ unsigned int AKitchenLink::getAvailability()
     _ipc.send("STATUS serialized");
     if (!_ipc.receive(args) || args[0] != "OK")
         return (false);
-    args.erase(args.begin());
-    args >> status;
+    status.deserialize(args, 1);
     return (status.orderQueueCapacity - status.orderQueue.size());
 }
 

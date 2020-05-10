@@ -264,7 +264,7 @@ bool Kitchen::_cmdStatus(const argv_t &argv, std::string &responseMsg)
             status.orderQueue.emplace_back(it.getName(), it.getSize(), it.getStatus());
     }
     if (argv.size() > 1) {
-        responseMsg << status;
+        responseMsg = status.serialize();
     } else {
         status.dump(std::cout);
     }

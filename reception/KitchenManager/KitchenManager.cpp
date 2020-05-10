@@ -6,6 +6,8 @@
 */
 
 #include "KitchenManager.hpp"
+#include "KitchenSpawner/IKitchenLink.hpp"
+#include "deps/plazza/KitchenStatus.hpp"
 
 KitchenManager::KitchenManager(float multiplier, int cooks, int interval,
                                const std::vector<Pizza> &pizzaMenu)

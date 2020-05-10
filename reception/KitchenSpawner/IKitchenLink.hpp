@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "deps/IPC/IPCProtocol.hpp"
-#include "deps/plazza/Pizza.hpp"
+class Pizza;
+class IPCProtocol;
 
 class IKitchenLink
 {

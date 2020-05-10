@@ -5,6 +5,7 @@
 ** KitchenProcessLink
 */
 
+#include "deps/IPC/NamedPipe.hpp"
 #include "KitchenProcessLink.hpp"
 
 KitchenProcessLink::KitchenProcessLink(const std::string &fifoName)
