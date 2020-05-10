@@ -5,6 +5,8 @@
 ** KitchenManager
 */
 
+#include "deps/IPC/IPCProtocol.hpp"
+#include "deps/plazza/KitchenStatus.hpp"
 #include "KitchenManager.hpp"
 #include "KitchenSpawner/IKitchenLink.hpp"
 #include "deps/plazza/KitchenStatus.hpp"
@@ -146,7 +148,20 @@ IKitchenLink &KitchenManager::queryKitchen()
 
 void KitchenManager::dump()
 {
-    // Minimum information to Display:
-    //     - cooks occupancy
-    //     - ingredients stock
+    std::vector<std::string> args;
+    std::size_t index = 0;
+    KitchenStatus status;
+
+    this->resetCache();
+    for (const auto &kitchen : _kitchens) {
+        IPCProtocol &ipc = kitchen.link->getIPC();
+        ipc.send("STATUS serialized");
+        ipc.receive(args);
+        status.deserialize(args, 1);
+        std::cout << "Kitchen " << index << ":" << std::endl;
+        status.dump(std::cout);
+        ++index;
+        if (index < _kitchens.size())
+            std::cout << std::endl;
+    }
 }

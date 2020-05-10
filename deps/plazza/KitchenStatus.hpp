@@ -56,6 +56,7 @@ struct KitchenStatus {
         std::regex format("^[ \t]*([0-9]+)[ \t]+([0-9]+)[ \t]+([0-9]+)[ \t]*");
         std::smatch matches;
 
+        orderQueue.clear();
         if (!std::regex_search(line, matches, format))
             return (false);
         try {
@@ -88,6 +89,8 @@ struct KitchenStatus {
     bool deserialize(const std::vector<std::string> &words, size_t offset = 0)
     {
         try {
+            orderQueue.clear();
+
             activeCooks = std::stoul(words[offset + 0]);
             totalCooks = std::stoul(words[offset + 1]);
             orderQueueCapacity = std::stoul(words[offset + 2]);
