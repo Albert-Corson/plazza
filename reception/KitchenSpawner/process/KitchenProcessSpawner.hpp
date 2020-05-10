@@ -27,7 +27,7 @@ public:
     };
 
     KitchenProcessSpawner() = default;
-    ~KitchenProcessSpawner() = default;
+    ~KitchenProcessSpawner() override = default;
 
     std::shared_ptr<IKitchenLink> spawn() override final;
 };

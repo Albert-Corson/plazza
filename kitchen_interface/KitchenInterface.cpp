@@ -10,6 +10,7 @@
 #include "KitchenInterface.hpp"
 #include "locateKitchenBin.hpp"
 #include "deps/utils/StringUtils.hpp"
+#include "deps/IPC/NamedPipe.hpp"
 
 // PING <pid> -> OK                        / KO
 // STOP <pid> -> OK                        / KO
@@ -35,7 +36,7 @@ KitchenInterface::KitchenInterface(const std::string_view &logFile)
     , _logStream(logFile)
 {
     _controlSock.listen(0, INADDR_ANY, 1);
-    if (!_controlSock.good() || !_setSighandler() || !_createFifo())
+    if (!_controlSock.good() || !_setSighandler())
         throw KitchenInterface::Exception("failed initialize kitchen interface");
 
     std::string hostAddr = _localIPv4 + ' ' + std::to_string(ntohs(_controlSock.info().sin_port));
@@ -69,12 +70,6 @@ void KitchenInterface::start()
     if (_running)
         _logStream.log("Reception disconnected");
 }
-
-bool KitchenInterface::_createFifo()
-{
-    return (_fifo.open(__fifoName.data()));
-}
-
 bool KitchenInterface::_setSighandler()
 {
     struct sigaction newhandler;
@@ -149,13 +144,16 @@ bool KitchenInterface::_cmdStopAll(const argv_t &args, std::string &responseMsg)
 bool KitchenInterface::_cmdSpawn(const argv_t &args, std::string &responseMsg)
 {
     Process kitchen;
+    NamedPipe fifo;
 
-    pid_t pid = kitchen.exec(locateKitchenBin().c_str(), "--network", __fifoName.data(), _logFilePath.data());
-    if (pid < 0) {
+    if (!fifo.open(__fifoName.data()))
         return (false);
-    }
+    pid_t pid = kitchen.exec(locateKitchenBin().c_str(), "--network", __fifoName.data(), _logFilePath.data());
+    if (pid < 0 || !kitchen.isAlive())
+        return (false);
+
     in_port_t bindedPort = 0;
-    _fifo.receive((char *)&bindedPort, sizeof(bindedPort));
+    fifo.receive((char *)&bindedPort, sizeof(bindedPort));
     responseMsg = ' ' + _localIPv4 + ' ' + std::to_string(ntohs(bindedPort)) + " " + std::to_string(pid);
     _kitchens.emplace_back(std::move(kitchen));
     return (true);

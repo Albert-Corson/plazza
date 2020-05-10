@@ -16,7 +16,6 @@
 #include "deps/Socket.hpp"
 #include "deps/Exception.hpp"
 #include "deps/Process.hpp"
-#include "deps/IPC/NamedPipe.hpp"
 
 class KitchenInterface {
 private:
@@ -38,7 +37,6 @@ private:
     OLogStream _logStream;
     Socket _controlSock;
     Socket _clientSock;
-    NamedPipe _fifo;
     std::vector<Process> _kitchens;
 
 public:
@@ -53,7 +51,6 @@ public:
     void start();
 
 private:
-    bool _createFifo();
     bool _setSighandler();
     void _validateCmd(argv_t &args);
 

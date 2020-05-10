@@ -27,7 +27,7 @@ public:
 
     KitchenNetworkSpawner() = default;
     KitchenNetworkSpawner(std::shared_ptr<Socket> interface);
-    ~KitchenNetworkSpawner() = default;
+    ~KitchenNetworkSpawner() override;
 
     std::shared_ptr<IKitchenLink> spawn() override final;
 

@@ -21,6 +21,11 @@ KitchenNetworkSpawner::KitchenNetworkSpawner(std::shared_ptr<Socket> interface)
 {
 }
 
+KitchenNetworkSpawner::~KitchenNetworkSpawner()
+{
+    _interface->close();
+}
+
 std::shared_ptr<IKitchenLink> KitchenNetworkSpawner::spawn()
 {
     std::string cmd = "SPAWN\n";
