@@ -52,7 +52,12 @@ int main(int argc, char const *argv[])
     try {
         Reception reception(timeMultiplier, cooksPerKitchen, restoreDelay);
         reception.start();
+    } catch (const std::exception &err) {
+        std::cerr << "Reception fatal error:" << std::endl
+                  << "\t" << err.what() << std::endl;
+        return (84);
     } catch (...) {
+        std::cerr << "Reception fatal error" << std::endl;
         return (84);
     }
     return (0);

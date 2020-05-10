@@ -95,6 +95,9 @@ int main(int argc, char const *argv[])
         std::cerr << "Kitchen fatal error:" << std::endl
                   << "\t" << err.what() << std::endl;
         return (1);
+    } catch (...) {
+        std::cerr << "Kitchen fatal error" << std::endl;
+        return (1);
     }
     return (0);
 }
