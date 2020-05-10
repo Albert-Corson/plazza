@@ -20,9 +20,9 @@ static void help(const char *binName)
 
 int main(int argc, char const *argv[])
 {
-    unsigned int timeMultiplier = 0;
-    unsigned int cooksPerKitchen = 0;
-    unsigned int restoreDelay = 0;
+    unsigned long timeMultiplier = 0;
+    unsigned long cooksPerKitchen = 0;
+    unsigned long restoreDelay = 0;
 
     if (argc != 4) {
         if (argc == 2 && !std::strcmp(argv[1], "-h")) {
@@ -32,12 +32,13 @@ int main(int argc, char const *argv[])
             return (84);
         }
     }
-    timeMultiplier = std::atoi(argv[1]);
-    cooksPerKitchen = std::atoi(argv[2]);
-    restoreDelay = std::atoi(argv[3]);
 
     updateKitchenBinLocation();
     try {
+        timeMultiplier = std::stoul(std::string(argv[1]));
+        cooksPerKitchen = std::stoul(std::string(argv[2]));
+        restoreDelay = std::stoul(std::string(argv[3]));
+        std::cout << std::stoul(std::string(argv[3]));
         Reception reception(timeMultiplier, cooksPerKitchen, restoreDelay);
         reception.start();
     } catch (const std::exception &err) {
