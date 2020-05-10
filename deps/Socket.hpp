@@ -68,6 +68,13 @@ public:
         if (this->isOpen())
             this->close();
     }
+    Socket &operator=(Socket &&other)
+    {
+        _sd = other._sd;
+        other._sd = -1;
+
+        return (*this);
+    }
 
     /**
      * @brief Listen to 'count' connections on given port and address

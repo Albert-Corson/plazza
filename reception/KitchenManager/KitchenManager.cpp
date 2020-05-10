@@ -59,9 +59,13 @@ void KitchenManager::resetCache()
 int KitchenManager::addKitchen(std::shared_ptr<SpawnerInfo> spawner)
 {
     int index = _kitchens.size();
-    auto kitchen = spawner->spawner->spawn(_multiplier, _cooks, _interval, _pizzaMenu);
+    auto kitchen = spawner->spawner->spawn();
     if (kitchen.get() == nullptr)
         return (-1);
+    if (!kitchen->start(_multiplier, _cooks, _interval, _pizzaMenu)) {
+        kitchen->stop();
+        return (-1);
+    }
     spawner->kitchensCount++;
     _kitchens.emplace_back(KitchenInfo(kitchen, spawner));
     return (index);

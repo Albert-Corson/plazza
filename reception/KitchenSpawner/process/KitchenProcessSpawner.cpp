@@ -9,7 +9,6 @@
 
 #include "KitchenProcessSpawner.hpp"
 #include "KitchenProcessLink.hpp"
-#include "deps/IPC/NamedPipe.hpp"
 #include "logfile.hpp"
 #include "locateKitchenBin.hpp"
 
@@ -24,8 +23,7 @@ static void sig()
     sigaction(SIGCHLD, &newhandler, NULL);
 }
 
-std::shared_ptr<IKitchenLink> KitchenProcessSpawner::spawn(float multiplier, int cooks, int interval,
-                                                           const std::vector<Pizza> &pizzaMenu)
+std::shared_ptr<IKitchenLink> KitchenProcessSpawner::spawn()
 {
     static int id = 0;
     std::string name = "fifo" + std::to_string(id);
@@ -39,10 +37,6 @@ std::shared_ptr<IKitchenLink> KitchenProcessSpawner::spawn(float multiplier, int
     pid_t pid = link->getProcess().exec(kitchenBin.c_str(), name.c_str(), LOGFILE);
     if (pid == -1)
         return (nullptr);
-    if (!link->start(multiplier, cooks, interval, pizzaMenu)) {
-        link->stop();
-        return (nullptr);
-    }
     ++id;
     return (link);
 }

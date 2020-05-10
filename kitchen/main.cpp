@@ -27,13 +27,13 @@ static void help(const char *binName)
 
 static std::unique_ptr<IPCProtocol> initNetworkIPC(const std::string_view &fifoPath)
 {
-    sockaddr_in serverinfo = Socket::localinfo();
     NamedPipe fifo(fifoPath.data());
     Socket sock;
+    in_port_t bindedPort = 0;
 
     sock.listen(0, INADDR_ANY, 1);
-    serverinfo.sin_port = sock.info().sin_port;
-    fifo.send((char *)&serverinfo, sizeof(serverinfo));
+    bindedPort = sock.info().sin_port;
+    fifo.send((char *)&bindedPort, sizeof(bindedPort));
     std::shared_ptr<Network> network = std::make_shared<Network>(sock.accept());
     return (std::make_unique<IPCProtocol>(network));
 }

@@ -7,11 +7,9 @@
 
 CC	=	g++
 
-SRC	=	main.cpp					\
-		Kitchen.cpp					\
-		Cook/Cook.cpp				\
-		OrderQueue/OrderQueue.cpp	\
-		Fridge/Fridge.cpp
+SRC	=	main.cpp											\
+		locateKitchenBin.cpp								\
+		KitchenInterface.cpp
 
 OBJ	=	$(SRC:.cpp=.o)
 
@@ -19,7 +17,7 @@ CXXFLAGS	=	$(COMMON_CXXFLAGS)	\
 				-I./				\
 				-I../
 
-NAME	=	../bin/kitchen
+NAME	=	../bin/kitchen_interface
 
 all: $(NAME)
 

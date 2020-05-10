@@ -34,6 +34,7 @@ class Pizza {
             ST_IDLE,
             ST_COOKING,
             ST_COOKED,
+            ST_AWAIT_RESTOCK
         };
 
         enum psize : int {

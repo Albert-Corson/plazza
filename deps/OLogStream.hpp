@@ -9,6 +9,8 @@
 
 #include <fstream>
 #include <iostream>
+#include <string_view>
+#include <string>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -50,7 +52,7 @@ class OLogStream {
         **/
         void open(const std::string_view &path)
         {
-            *_fdLock = ::open(path.data(), O_WRONLY);
+            *_fdLock = ::open(path.data(), O_CREAT | O_WRONLY, 0666);
             if (*_fdLock < 0)
                 *_fdLock = 1;
         }

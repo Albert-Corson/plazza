@@ -14,12 +14,10 @@
 
 #include <iostream>
 
-class Process
-{
-  public:
-    class Exception : public ::Exception
-    {
-      public:
+class Process {
+public:
+    class Exception : public ::Exception {
+    public:
         Exception(const std::string &msg)
             : ::Exception("Process::Exception: " + msg)
         {
@@ -31,6 +29,11 @@ class Process
         ~Exception() override = default;
     };
 
+    Process(const Process &other)
+        : _pid(other._pid)
+    {
+    }
+
     Process() = default;
     ~Process() = default;
 
@@ -39,7 +42,7 @@ class Process
      * 
      * @return pid_t the child process pid
     **/
-    template<typename... Args>
+    template <typename... Args>
     pid_t exec(const char *path, Args &&... args)
     {
         this->fork();
@@ -111,6 +114,6 @@ class Process
         return (_pid);
     }
 
-  private:
+private:
     pid_t _pid = -1;
 };

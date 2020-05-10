@@ -14,7 +14,6 @@ KitchenNetworkLink::KitchenNetworkLink(const std::string &address, in_port_t por
     Socket &socket = ipc->getSocket();
     socket.connect(port, address.c_str());
     _ipc.connect(ipc);
-
 }
 
 void KitchenNetworkLink::waitstop()

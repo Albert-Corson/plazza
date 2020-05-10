@@ -25,7 +25,6 @@ void updateKitchenBinLocation()
     if (readlink("/proc/self/exe", buffer, 1024) < 0)
         return;
     std::filesystem::path path(buffer);
-    path.remove_filename();
-    path /= "bin/kitchen";
+    path.replace_filename("kitchen");
     locateKitchenBin(path.c_str());
 }

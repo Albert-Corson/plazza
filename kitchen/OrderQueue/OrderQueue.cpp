@@ -36,7 +36,7 @@ Pizza &OrderQueue::waitForOrder()
     if (_running) {
         for (auto &it : *_queue) {
             if (it.getStatus() == Pizza::ST_IDLE) {
-                it.setStatus(Pizza::ST_COOKING);
+                it.setStatus(Pizza::ST_AWAIT_RESTOCK);
                 return (it);
             }
         }

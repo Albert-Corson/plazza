@@ -16,8 +16,7 @@ static inline const std::string locateKitchenBin()
     return ("bin/kitchen");
 }
 
-std::shared_ptr<IKitchenLink> KitchenNetworkSpawner::spawn(float multiplier, int cooks, int interval,
-                                                           const std::vector<Pizza> &pizzaMenu)
+std::shared_ptr<IKitchenLink> KitchenNetworkSpawner::spawn()
 {
     std::string cmd = "SPAWN";
     _interface.write(cmd.c_str(), cmd.size());
@@ -34,11 +33,5 @@ std::shared_ptr<IKitchenLink> KitchenNetworkSpawner::spawn(float multiplier, int
     in_port_t port = std::stoul(args[2]);
     pid_t pid = std::stoul(args[3]);
 
-    std::shared_ptr<KitchenNetworkLink> link = std::make_shared<KitchenNetworkLink>(address, port, pid);
-    
-    if (!link->start(multiplier, cooks, interval, pizzaMenu)) {
-        link->stop();
-        return (nullptr);
-    }
-    return (link);
+    return (std::make_shared<KitchenNetworkLink>(address, port, pid));
 }

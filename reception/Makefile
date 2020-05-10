@@ -26,10 +26,10 @@ CXXFLAGS	=	$(COMMON_CXXFLAGS)	\
 
 NAME	=	../plazza
 
+all: $(NAME)
+
 $(NAME): $(OBJ)
 	$(CC) -o $(NAME) $(OBJ) $(CXXFLAGS)
-
-all: $(NAME)
 
 clean:
 	rm -f $(OBJ)

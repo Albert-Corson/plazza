@@ -50,6 +50,7 @@ void Cook::_cookNext()
         for (const auto &it : pizza.getRecipe())
             _fridge->take(it.getName(), it.getAmount());
 
+        pizza.setStatus(Pizza::ST_COOKING);
         float realtime = pizza.getCookTime();
         realtime *= _cookTimeMultiplier;
         std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<size_t>(realtime)));
