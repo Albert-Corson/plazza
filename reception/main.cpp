@@ -32,13 +32,11 @@ int main(int argc, char const *argv[])
             return (84);
         }
     }
-
     updateKitchenBinLocation();
     try {
         timeMultiplier = std::stoul(std::string(argv[1]));
         cooksPerKitchen = std::stoul(std::string(argv[2]));
         restoreDelay = std::stoul(std::string(argv[3]));
-        std::cout << std::stoul(std::string(argv[3]));
         Reception reception(timeMultiplier, cooksPerKitchen, restoreDelay);
         reception.start();
     } catch (const std::exception &err) {
