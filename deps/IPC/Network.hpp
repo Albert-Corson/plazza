@@ -8,7 +8,7 @@
 #pragma once
 
 #include "IIPC.hpp"
-#include "Socket.hpp"
+#include "deps/Socket.hpp"
 
 // Inter-process communication through sockets
 class Network : public IIPC
@@ -43,6 +43,11 @@ public:
     bool good() const override final
     {
         return (_socket.good() && _socket.good());
+    }
+
+    Socket &getSocket()
+    {
+        return (_socket);
     }
 
 private:

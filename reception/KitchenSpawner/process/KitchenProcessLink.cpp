@@ -7,6 +7,12 @@
 
 #include "KitchenProcessLink.hpp"
 
+KitchenProcessLink::KitchenProcessLink(const std::string &fifoName)
+{
+    std::shared_ptr<NamedPipe> pipe = std::make_shared<NamedPipe>(fifoName);
+    _ipc.connect(pipe);
+}
+
 void KitchenProcessLink::waitstop()
 {
     pid_t pid = _process.getPid();

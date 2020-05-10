@@ -10,6 +10,8 @@ CC	=	g++
 SRC	=	main.cpp											\
 		KitchenSpawner/process/KitchenProcessSpawner.cpp	\
 		KitchenSpawner/process/KitchenProcessLink.cpp		\
+		KitchenSpawner/network/KitchenNetworkSpawner.cpp	\
+		KitchenSpawner/network/KitchenNetworkLink.cpp		\
 		KitchenSpawner/AKitchenLink.cpp						\
 		KitchenManager/KitchenManager.cpp					\
 		Reception.cpp										\

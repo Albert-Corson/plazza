@@ -14,8 +14,8 @@
 
 class KitchenProcessLink : public AKitchenLink
 {
-public:
-    KitchenProcessLink() = default;
+  public:
+    KitchenProcessLink(const std::string &fifoName) ;
     ~KitchenProcessLink() override final = default;
 
     void waitstop() override final;

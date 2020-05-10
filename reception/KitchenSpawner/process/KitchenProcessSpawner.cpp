@@ -35,9 +35,7 @@ std::shared_ptr<IKitchenLink> KitchenProcessSpawner::spawn(float multiplier, int
         ++id;
         name = "fifo" + std::to_string(id);
     }
-    std::shared_ptr<KitchenProcessLink> link = std::make_shared<KitchenProcessLink>();
-    std::shared_ptr<NamedPipe> pipe = std::make_shared<NamedPipe>(name);
-    link->getIPC().connect(pipe);
+    std::shared_ptr<KitchenProcessLink> link = std::make_unique<KitchenProcessLink>(name);
     sig();
     const std::string &kitchenBin = locateKitchenBin();
     pid_t pid = link->getProcess().exec(kitchenBin.c_str(), name.c_str(), NULL);
