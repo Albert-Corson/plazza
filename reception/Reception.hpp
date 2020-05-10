@@ -23,16 +23,28 @@ public:
     ~Reception();
 
     void start(void);
-    void parseOrders(std::string buffer);
-    void sendToKitchen(void);
 
 protected:
+    using argv_t = std::vector<std::string>;
+    using commandPtr_t = void (Reception::*)(const argv_t &);
+
+    static const std::unordered_map<std::string_view, commandPtr_t> __commands;
+
+    bool _running;
     OLogStream _logStream;
     PizzaMenu _pizzaMenu;
     std::string _tempPizzaName;
     Pizza::psize _tempPizzaSize;
     int _tempPizzaOrder;
     std::unique_ptr<KitchenManager> _kitchenManager;
+
+    bool _parseCmd(const std::string &buffer);
+    void _parseOrders(std::string &buffer);
+    void _sendToKitchen(void);
+
+    void _cmdExit(const argv_t &args);
+    void _cmdStatus(const argv_t &args);
+    void _cmdConnect(const argv_t &args);
 };
 
 #endif /* !MAIN_RECEPTION_HPP_ */

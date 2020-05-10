@@ -157,6 +157,10 @@ void KitchenManager::dump()
     KitchenStatus status;
 
     this->resetCache();
+    if (!_kitchens.size()) {
+        std::cout << "No activity" << std::endl;
+        return;
+    }
     for (const auto &kitchen : _kitchens) {
         IPCProtocol &ipc = kitchen.link->getIPC();
         ipc.send("STATUS serialized");

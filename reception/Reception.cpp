@@ -14,8 +14,15 @@
 #include "deps/utils/StringUtils.hpp"
 #include "logfile.hpp"
 
+const std::unordered_map<std::string_view, Reception::commandPtr_t> Reception::__commands = {
+    { "exit", &Reception::_cmdExit },
+    { "status", &Reception::_cmdStatus },
+    { "connect", &Reception::_cmdConnect },
+};
+
 Reception::Reception(unsigned int timeMultiplier, unsigned int cooksPerKitchen, unsigned int restoreDelay)
-    : _pizzaMenu("./pizzas")
+    : _running(false)
+    , _pizzaMenu("./pizzas")
     , _kitchenManager(std::make_unique<KitchenManager>(timeMultiplier, cooksPerKitchen, restoreDelay, _pizzaMenu))
 {
     if (!OLogStream::makeFile(LOGFILE))
@@ -25,13 +32,43 @@ Reception::Reception(unsigned int timeMultiplier, unsigned int cooksPerKitchen, 
     _kitchenManager->bindSpawner(std::make_shared<KitchenProcessSpawner>());
 }
 
-Reception::~Reception() 
+Reception::~Reception()
 {
     _kitchenManager = nullptr;
     _logStream.log("Recpetion closed\n");
 }
 
-void Reception::parseOrders(std::string buffer)
+void Reception::start(void)
+{
+    std::string buffer;
+
+    _running = true;
+    while (_running) {
+        std::cout << "$> ";
+        if (!std::getline(std::cin, buffer))
+            break;
+        if (!_parseCmd(buffer))
+            _parseOrders(buffer);
+    }
+}
+
+bool Reception::_parseCmd(const std::string &buffer)
+{
+    std::vector<std::string> args;
+
+    StringUtils::strtab(buffer, args);
+    if (!args.size())
+        return (true);
+    for (const auto &it : __commands) {
+        if (it.first == args[0]) {
+            (this->*it.second)(args);
+            return (true);
+        }
+    }
+    return (false);
+}
+
+void Reception::_parseOrders(std::string &buffer)
 {
     std::regex format("^[ \\t]*([A-Za-z0-9]+)[ \\t]+(S|M|L|XL|XXL)[ \\t]+x([0-9]+)[ \\t]*");
     std::smatch matches;
@@ -45,7 +82,7 @@ void Reception::parseOrders(std::string buffer)
             if (_tempPizzaSize == Pizza::SZ_UNDEF || !_pizzaMenu.isGoodPizzaName(_tempPizzaName))
                 std::cerr << "Error: invalid command `" << buffer.substr(0, buffer.find(';')) << "`" << std::endl;
             else
-                sendToKitchen();
+                _sendToKitchen();
             buffer = buffer.substr(matches.str(0).size());
         } else {
             std::cerr << "Error: invalid command `" << buffer.substr(0, buffer.find(';')) << "`" << std::endl;
@@ -57,24 +94,7 @@ void Reception::parseOrders(std::string buffer)
     }
 }
 
-void Reception::start(void)
-{
-    std::string buffer;
-
-    std::cout << "$> ";
-    while (std::getline(std::cin, buffer)) {
-        if (buffer == "exit") {
-            break;
-        } else if (buffer == "status") {
-            _kitchenManager->dump();
-        } else {
-            this->parseOrders(buffer);
-        }
-        std::cout << "$> ";
-    }
-}
-
-void Reception::sendToKitchen(void)
+void Reception::_sendToKitchen(void)
 {
     std::vector<std::string> args;
 
@@ -85,9 +105,24 @@ void Reception::sendToKitchen(void)
 
         ipc.send("ORDER", _tempPizzaName, _tempPizzaSize);
         ipc.receive(args);
-        for (const auto &it : args) {
+        if (args[0] == "OK")
+            continue;
+        for (const auto &it : args)
             std::cout << it << " ";
-        }
         std::cout << std::endl;
     }
+}
+
+void Reception::_cmdExit(const argv_t &args)
+{
+    _running = false;
+}
+
+void Reception::_cmdStatus(const argv_t &args)
+{
+    _kitchenManager->dump();
+}
+
+void Reception::_cmdConnect(const argv_t &args)
+{
 }

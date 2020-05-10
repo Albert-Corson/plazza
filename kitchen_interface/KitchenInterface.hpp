@@ -20,7 +20,7 @@
 
 class KitchenInterface {
 private:
-    static constexpr std::string_view __fifoName = "kitchen_interface.fifo";
+    static constexpr std::string_view __fifoName = "fifo.ki";
 
     using argv_t = std::vector<std::string>;
     using commandPtr_t = bool (KitchenInterface::*)(const argv_t &, std::string &);
