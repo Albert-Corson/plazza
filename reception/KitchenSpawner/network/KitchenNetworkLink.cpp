@@ -20,21 +20,21 @@ KitchenNetworkLink::KitchenNetworkLink(std::shared_ptr<Socket> interface, const 
 void KitchenNetworkLink::waitstop()
 {
     std::string cmd = "STOP " + std::to_string(_id) + "\n";
-    std::string BUFFER;
+    std::string buffer;
 
     _interface->write(cmd.c_str(), cmd.size());
-    _interface->getline(BUFFER);
+    _interface->getline(buffer);
 }
 
 bool KitchenNetworkLink::isAlive()
 {
     std::string cmd = "PING " + std::to_string(_id) + "\n";
-    std::string BUFFER;
+    std::string buffer;
 
     _interface->write(cmd.c_str(), cmd.size());
-    _interface->getline(BUFFER);
+    _interface->getline(buffer);
 
-    if (BUFFER == "OK")
+    if (buffer == "OK")
         return true;
     return false;
 }
@@ -46,7 +46,7 @@ bool KitchenNetworkLink::kill()
     _interface->write(buffer.c_str(), buffer.size());
     buffer.clear();
     _interface->getline(buffer);
-    if (buffer.substr(0, 2) == "KO")
+    if (buffer == "KO")
         return (false);
     return (true);
 }
