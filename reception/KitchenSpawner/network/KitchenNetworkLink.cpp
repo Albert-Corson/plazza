@@ -39,6 +39,12 @@ bool KitchenNetworkLink::isAlive()
     return false;
 }
 
+bool KitchenNetworkLink::kill() 
+{
+    _interface.close();
+    return (true);
+}
+
 Network &KitchenNetworkLink::getNetwork()
 {
     return _network;

@@ -20,6 +20,7 @@ class KitchenProcessLink : public AKitchenLink
 
     void waitstop() override final;
     bool isAlive() override final;
+    bool kill() override final;
     Process &getProcess();
 
 protected:

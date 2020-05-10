@@ -47,4 +47,7 @@ tests_run: all
 debug:
 	$(MAKE) all COMMON_CXXFLAGS="$(DEBUG)"
 
-.PHONY: all clean fclean re tests_run debug reception kitchen
+clear_log:
+	rm -rf plazza.log
+
+.PHONY: all reception kitchen clean fclean re tests_run debug clear_log

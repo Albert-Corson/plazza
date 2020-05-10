@@ -80,7 +80,7 @@ void Fridge::take(const std::string_view &ingredient, size_t amount)
     });
     while (_running && amount > 0) {
         auto lock = elem->wait([&](const Ingredient &it) {
-            return (it.getAmount() > 0 || !_running);
+            return (!_running || it.getAmount() > 0);
         });
         amount -= (*elem)->take(amount);
     }
@@ -101,6 +101,6 @@ void Fridge::_restockEach(size_t amount) noexcept
         it.apply([&amount](Ingredient &curr) {
             curr.add(amount);
         });
-        it.notify_all();
+        it.notify_one();
     }
 }

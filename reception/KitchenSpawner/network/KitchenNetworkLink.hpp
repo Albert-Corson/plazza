@@ -21,6 +21,7 @@ public:
 
     void waitstop() override final;
     bool isAlive() override final;
+    bool kill() override final;
 
     Network &getNetwork();
 

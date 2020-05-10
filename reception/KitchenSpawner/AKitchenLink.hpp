@@ -21,6 +21,7 @@ public:
     virtual void waitstop() override{};
     void stop() override final;
     virtual bool isAlive() = 0;
+    virtual bool kill() = 0;
     unsigned int getAvailability() override final;
     bool isAvailable() override final;
 

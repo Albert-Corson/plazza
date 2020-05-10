@@ -37,7 +37,6 @@ Pizza &OrderQueue::waitForOrder()
         for (auto &it : *_queue) {
             if (it.getStatus() == Pizza::ST_IDLE) {
                 it.setStatus(Pizza::ST_COOKING);
-                _queue.notify_all();
                 return (it);
             }
         }
@@ -51,7 +50,7 @@ void OrderQueue::addOrder(const Pizza &pizza, Pizza::psize size)
         queue.push_back(pizza);
         queue.back().setSize(size);
     });
-    _queue.notify_all();
+    _queue.notify_one();
 }
 
 size_t OrderQueue::getSize() const noexcept
@@ -76,7 +75,6 @@ void OrderQueue::removeCookedPizzas()
             ++it;
         }
     }
-    _queue.notify_all();
 }
 
 void OrderQueue::close() 

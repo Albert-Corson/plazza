@@ -28,6 +28,11 @@ bool KitchenProcessLink::isAlive()
     return (_process.isAlive());
 }
 
+bool KitchenProcessLink::kill() 
+{
+    return (_process.kill());
+}
+
 Process &KitchenProcessLink::getProcess()
 {
     return (_process);

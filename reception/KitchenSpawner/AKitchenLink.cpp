@@ -42,7 +42,8 @@ void AKitchenLink::stop()
 
         _ipc.send("STOP");
         if (!_ipc.receive(args) || args[0] != "OK") {
-            std::cerr << "Failed to stop kitchen." << std::endl;
+            std::cerr << "Failed to stop kitchen. Killing." << std::endl;
+            this->kill();
         }
         this->waitstop();
     }
