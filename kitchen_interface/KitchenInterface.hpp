@@ -51,12 +51,40 @@ public:
     void start();
 
 private:
+    /**
+     * @brief set the signal handler for SIGCHLD
+     * 
+     * @return bool
+    **/
     bool _setSighandler();
+    /**
+     * @brief executes the command described by `args` and send the appropriate response message
+    **/
     void _validateCmd(argv_t &args);
 
+    /**
+     * @brief executes the "PING" command
+     * 
+     * @return bool
+    **/
     bool _cmdPing(const argv_t &args, std::string &responseMsg);
+    /**
+     * @brief executes the "STOP" (with <pid> as args[2]) command
+     * 
+     * @return bool
+    **/
     bool _cmdStop(const argv_t &args, std::string &responseMsg);
+    /**
+     * @brief executes the "STOP" (without any args) command
+     * 
+     * @return bool
+    **/
     bool _cmdStopAll(const argv_t &args, std::string &responseMsg);
+    /**
+     * @brief executes the "SPAWN" command and fills the `responseMsg` with " <address> <port> <pid>" on success
+     * 
+     * @return bool
+    **/
     bool _cmdSpawn(const argv_t &args, std::string &responseMsg);
 };
 
